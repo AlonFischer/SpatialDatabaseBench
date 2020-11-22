@@ -17,4 +17,4 @@ tools/Makefile
 tools/config.status
 tools/autom4te.cache
 python/src/__pycache__
-        
+.vscode
