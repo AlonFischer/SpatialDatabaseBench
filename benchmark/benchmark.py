@@ -12,6 +12,7 @@ class Benchmark:
         self.time_measurements = []
         self.repeat_count = repeat_count
         self.title = title
+        self.results = None
 
     def get_repeat_count(self):
         return self.repeat_count
@@ -32,7 +33,7 @@ class Benchmark:
                 f"{self.title}: Starting run {i+1} of {self.repeat_count}")
             start = time.perf_counter()
             try:
-                self.execute()
+                self.results = self.execute()
             except Exception:
                 Benchmark._logger.exception("Exception: ")
                 raise BenchmarkException(
@@ -52,3 +53,6 @@ class Benchmark:
 
     def get_average_time(self):
         return sum(self.time_measurements) / len(self.time_measurements)
+
+    def get_results(self):
+        return self.results

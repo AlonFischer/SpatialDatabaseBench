@@ -25,11 +25,6 @@ def create_bar_chart(data, title, y_axis_label, filename):
         bar_heights = [data[series].get(label, 0) for label in labels]
         ax.bar(indexes + width * idx, bar_heights, width, label=series)
 
-    # return
-
-    # ax.bar(np.arange(n), data1, width, label="Postgres", color=color1)
-    # ax.bar(np.arange(n) + width, data2, width, label="MySQL", color=color2)
-
     ax.set_xticks(indexes + width/2 * (num_series-1))
     ax.set_xticklabels(labels, rotation=45, ha='right')
     plt.ylabel(y_axis_label)

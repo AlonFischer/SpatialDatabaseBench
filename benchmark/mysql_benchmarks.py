@@ -33,6 +33,7 @@ class LoadAirspaces(MysqlBenchmark):
         self.adapter.execute(
             f"DROP TABLE {DATABASE_NAME}.{LoadAirspaces._table_name}")
 
+
 class LoadAirports(MysqlBenchmark):
     _logger = logging.getLogger(__name__)
     _title = "Load Airports"
@@ -51,6 +52,7 @@ class LoadAirports(MysqlBenchmark):
     def cleanup(self):
         self.adapter.execute(
             f"DROP TABLE {DATABASE_NAME}.{LoadAirports._table_name}")
+
 
 class LoadRoutes(MysqlBenchmark):
     _logger = logging.getLogger(__name__)
@@ -76,49 +78,67 @@ class PolygonIntersectsPolygon(MysqlBenchmark):
     _logger = logging.getLogger(__name__)
     _title = "Polygon Intersects Polygon"
 
-    def __init__(self, use_projected_crs=True):
+    def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
                          PolygonIntersectsPolygon._title, repeat_count=1)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
+        self.subsampling_condition = ""
+        if subsampling_factor > 1:
+            self.subsampling_condition = f"MOD(AS1.OBJECTID, {subsampling_factor}) = 0 AND MOD(AS2.OBJECTID, {subsampling_factor}) = 0 AND"
 
     def execute(self):
-        PolygonIntersectsPolygon._logger.info(
-            self.adapter.execute(f"""SELECT COUNT(*)
-                                    FROM {DATABASE_NAME}.airspaces{self.dataset_suffix} AS1, {DATABASE_NAME}.airspaces{self.dataset_suffix} AS2
-                                    WHERE MOD(AS1.OBJECTID, 8) = 0 AND MOD(AS2.OBJECTID, 8) = 0 AND st_intersects(AS1.SHAPE, AS2.SHAPE)
-                                    ;"""))
+        cmd = f"""SELECT AS1.OBJECTID, AS2.OBJECTID
+                FROM {DATABASE_NAME}.airspaces{self.dataset_suffix} AS1, {DATABASE_NAME}.airspaces{self.dataset_suffix} AS2
+                WHERE {self.subsampling_condition} st_intersects(AS1.SHAPE, AS2.SHAPE)
+                ;"""
+        PolygonIntersectsPolygon._logger.info(f"Query: {cmd}")
+        return self.adapter.execute(cmd)
 
 
 class PolygonEqualsPolygon(MysqlBenchmark):
     _logger = logging.getLogger(__name__)
     _title = "Polygon Equals Polygon"
 
-    def __init__(self):
+    def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(), PolygonEqualsPolygon._title, repeat_count=1)
+        self.dataset_suffix = ""
+        if use_projected_crs:
+            self.dataset_suffix = "_3857"
+        self.subsampling_condition = ""
+        if subsampling_factor > 1:
+            self.subsampling_condition = f"MOD(AS1.OBJECTID, {subsampling_factor}) = 0 AND MOD(AS2.OBJECTID, {subsampling_factor}) = 0 AND"
 
     def execute(self):
-        PolygonIntersectsPolygon._logger.info(
-            self.adapter.execute("""SELECT COUNT(*)
-                                    FROM {DATABASE_NAME}.airspaces_projected AS1, {DATABASE_NAME}.airspaces_projected AS2
-                                    WHERE MOD(AS1.OBJECTID, 8) = 0 AND MOD(AS2.OBJECTID, 8) = 0 AND st_equals(AS1.SHAPE, AS2.SHAPE)
-                                    ;"""))
+        cmd = f"""SELECT AS1.OBJECTID, AS2.OBJECTID
+                FROM {DATABASE_NAME}.airspaces{self.dataset_suffix} AS1, {DATABASE_NAME}.airspaces{self.dataset_suffix} AS2
+                WHERE {self.subsampling_condition} st_equals(AS1.SHAPE, AS2.SHAPE)
+                ;"""
+        PolygonEqualsPolygon._logger.info(f"Query: {cmd}")
+        return self.adapter.execute(cmd)
 
 
 class LineIntersectsLine(MysqlBenchmark):
     _logger = logging.getLogger(__name__)
     _title = "Line Intersects Line"
 
-    def __init__(self):
+    def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(), LineIntersectsLine._title, repeat_count=1)
+        self.dataset_suffix = ""
+        if use_projected_crs:
+            self.dataset_suffix = "_3857"
+        self.subsampling_condition = ""
+        if subsampling_factor > 1:
+            self.subsampling_condition = f"MOD(R1.OBJECTID, {subsampling_factor}) = 0 AND MOD(R2.OBJECTID, {subsampling_factor}) = 0 AND"
 
     def execute(self):
-        LineIntersectsLine._logger.info(
-            self.adapter.execute("""SELECT COUNT(*)
-                                    FROM {DATABASE_NAME}.routes_projected R1, {DATABASE_NAME}.routes_projected R2
-                                    WHERE MOD(R1.OBJECTID, 4) = 0 AND MOD(R2.OBJECTID, 4) = 0 AND st_intersects(R1.SHAPE, R2.SHAPE)
-                                    ;"""))
+        cmd = f"""SELECT R1.OBJECTID, R2.OBJECTID
+                FROM {DATABASE_NAME}.routes{self.dataset_suffix} R1, {DATABASE_NAME}.routes{self.dataset_suffix} R2
+                WHERE {self.subsampling_condition} st_intersects(R1.SHAPE, R2.SHAPE)
+                ;"""
+        LineIntersectsLine._logger.info(f"Query: {cmd}")
+        return self.adapter.execute(cmd)
 
 # class SelectStatic(mysql_benchmark.MysqlBenchmark):
 #     def __init__(self):

@@ -11,14 +11,17 @@ def main():
 
     chart_data = {
         "MySQL": {
-            "test1": 10,
+            "test1": 0.10,
+            "test2": 0.20
         },
         "Postgres": {
-            "test1": 20,
+            "test1": 0.20,
+            "test2": 0.40
         },
     }
 
-    create_bar_chart(chart_data, "Test Plot", "Time (sec)", "figures/test_plot.png")
+    create_bar_chart(chart_data, "Test Plot",
+                     "Time (sec)", "figures/test_plot.png")
 
 
 if __name__ == "__main__":
