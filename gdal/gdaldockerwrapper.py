@@ -64,3 +64,19 @@ class GdalDockerWrapper:
             cmd += " -lco SPATIAL_INDEX=NO"
         GdalDockerWrapper._logger.info(cmd)
         return self.run_command(cmd)
+
+    def import_to_postgis(self, source, table_name, create_spatial_index="GIST", schema_name="spatialdatasets", host="127.0.0.1", port=5432, user="postgres", password="root-password"):
+        """ source should be relative to the datasets folder
+        """
+        # create_spatial_index = {"NONE", "GIST" (default), "SPGIST", "BRIN"}
+        if not create_spatial_index:
+            create_spatial_index = "NONE"
+        cmd = f"""ogr2ogr
+            -f PostgreSQL PG:"dbname='{schema_name}' host='{host}' port='{port}' user='{user}' password='{password}'"
+            {self.gdal_data_folder}/{source}
+            -nln {table_name}
+            -overwrite
+            -lco FID=OBJECTID
+            -lco SPATIAL_INDEX={create_spatial_index}"""
+        GdalDockerWrapper._logger.info(cmd)
+        return self.run_command(cmd)

@@ -16,7 +16,9 @@ def main():
     print(postgis_client.execute("SHOW data_directory"))
     print(postgis_client.execute("SELECT version();"))
     print(postgis_client.execute("SELECT PostGIS_Version();"))
-
+    print(postgis_client.execute("SELECT schema_name FROM information_schema.schemata;"))
+    # postgis_docker_wrapper.stop_container()
+    # postgis_docker_wrapper.remove_container()
 
 if __name__ == '__main__':
     main()
