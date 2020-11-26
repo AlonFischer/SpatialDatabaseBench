@@ -23,12 +23,18 @@ def create_bar_chart(data, title, y_axis_label, filename):
 
     for idx, series in enumerate(data):
         bar_heights = [data[series].get(label, 0) for label in labels]
-        ax.bar(indexes + width * idx, bar_heights, width, label=series)
+        ax.bar(indexes + width * idx, bar_heights,
+               width, label=series, zorder=2)
 
+    # Axis labels
     ax.set_xticks(indexes + width/2 * (num_series-1))
     ax.set_xticklabels(labels, rotation=45, ha='right')
     plt.ylabel(y_axis_label)
 
+    # horizontal gridlines
+    ax.grid(axis='y', linestyle=':', zorder=1)
+
+    # Misc properties
     ax.legend(loc='best')
     ax.set_title(title)
 

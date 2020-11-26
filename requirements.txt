@@ -17,6 +17,7 @@ protobuf==3.13.0
 pycodestyle==2.6.0
 pylint==2.6.0
 pyparsing==2.4.7
+pyproj==3.0.0.post1
 python-dateutil==2.8.1
 requests==2.24.0
 six==1.15.0

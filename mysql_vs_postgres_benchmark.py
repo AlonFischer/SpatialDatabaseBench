@@ -1,5 +1,6 @@
 import logging
 import docker
+import time
 from benchmark.mysql_benchmarks import *
 from mysqlutils.mysqldockerwrapper import MySqlDockerWrapper
 from gdal.gdaldockerwrapper import GdalDockerWrapper
@@ -14,6 +15,8 @@ def main():
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
 
+    start = time.perf_counter()
+
     docker_client = docker.from_env()
     mysql_docker = MySqlDockerWrapper(docker_client)
     mysql_docker.start_container()
@@ -22,14 +25,29 @@ def main():
     gdal_docker_wrapper.import_to_mysql(
         "airspace_3857/Class_Airspace.shp", "airspaces_3857", create_spatial_index=True)
     gdal_docker_wrapper.import_to_mysql(
-        "airspace_3857/Airports.shp", "airports_3857", create_spatial_index=True)
+        "airports_3857/Airports.shp", "airports_3857", create_spatial_index=True)
     gdal_docker_wrapper.import_to_mysql(
         "routes_3857/ATS_Route.shp", "routes_3857", create_spatial_index=True)
 
     benchmarks = [
-        ("MySQL", "PolygonIntersectsPolygon", PolygonIntersectsPolygon()),
-        ("MySQL", "PolygonEqualsPolygon", PolygonEqualsPolygon()),
-        ("MySQL", "LineIntersectsLine", LineIntersectsLine())
+        # ("MySQL", "PointEqualsPoint", PointEqualsPoint()),
+        # ("MySQL", "PointIntersectsLine", PointIntersectsLine()),
+        # ("MySQL", "PointWithinPolygon", PointWithinPolygon()),
+        # ("MySQL", "LineIntersectsPolygon", LineIntersectsPolygon()),
+        # ("MySQL", "LineWithinPolygon", LineWithinPolygon()),
+        # ("MySQL", "LineIntersectsLine", LineIntersectsLine()),
+        # ("MySQL", "PolygonEqualsPolygon", PolygonEqualsPolygon()),
+        # ("MySQL", "PolygonDisjointPolygon",
+        #  PolygonDisjointPolygon(subsampling_factor=10)),
+        # ("MySQL", "PolygonIntersectsPolygon", PolygonIntersectsPolygon()),
+        # ("MySQL", "PolygonWithinPolygon", PolygonWithinPolygon()),
+        # ("MySQL", "RetrievePoints", RetrievePoints()),
+        # ("MySQL", "LongestLine", LongestLine()),
+        # ("MySQL", "TotalLength", TotalLength()),
+        # ("MySQL", "RetrieveLines", RetrieveLines()),
+        # ("MySQL", "LargestArea", LargestArea()),
+        # ("MySQL", "TotalArea", TotalArea()),
+        ("MySQL", "RetrievePolygons", RetrievePolygons()),
     ]
 
     benchmark_data = dict([(benchmark[0], {}) for benchmark in benchmarks])
@@ -46,6 +64,9 @@ def main():
 
     mysql_docker.stop_container()
     mysql_docker.remove_container()
+
+    end = time.perf_counter()
+    logger.info(f"Total benchmark time: {(end-start)/60} minutes")
 
 
 if __name__ == "__main__":
