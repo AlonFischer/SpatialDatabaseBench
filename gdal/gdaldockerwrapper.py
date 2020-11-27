@@ -71,10 +71,12 @@ class GdalDockerWrapper:
         # create_spatial_index = {"NONE", "GIST" (default), "SPGIST", "BRIN"}
         if not create_spatial_index:
             create_spatial_index = "NONE"
+        # ogr2ogr can't into multipolygon so we need manual `-nlt PROMOTE_TO_MULTI`
         cmd = f"""ogr2ogr
             -f PostgreSQL PG:"dbname='{schema_name}' host='{host}' port='{port}' user='{user}' password='{password}'"
             {self.gdal_data_folder}/{source}
             -nln {table_name}
+            -nlt PROMOTE_TO_MULTI
             -overwrite
             -lco FID=OBJECTID
             -lco SPATIAL_INDEX={create_spatial_index}"""

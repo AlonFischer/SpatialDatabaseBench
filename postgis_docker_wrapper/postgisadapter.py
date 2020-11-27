@@ -3,12 +3,13 @@ import psycopg2
 
 
 class PostgisAdapter:
-    def __init__(self, user, password, host="127.0.0.1", port="5432", persist = False):
+    def __init__(self, user, password, host="127.0.0.1", port="5432", dbname='spatialdatasets', persist = False):
         self.connection = psycopg2.connect(
             host=host,
             port=port,
             user=user,
             password=password,
+            dbname=dbname,
         )
         self._persist = persist
 
