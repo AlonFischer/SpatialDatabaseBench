@@ -1,7 +1,7 @@
 import logging
 import docker
 import time
-import json=
+import json
 from benchmark import mysql_benchmarks
 from benchmark import postgresql_benchmarks
 from mysqlutils.mysqldockerwrapper import MySqlDockerWrapper
@@ -39,7 +39,6 @@ def main():
         ("MySQL", "Points", mysql_benchmarks.InsertNewPoints()),
         ("MySQL", "Lines", mysql_benchmarks.InsertNewLines()),
         ("MySQL", "Polygons", mysql_benchmarks.InsertNewPolygons()),
-        # ("Postgis", "LoadAirspaces", postgres_benchmarks.LoadAirspaces()),
     ]
 
     benchmark_data = dict([(benchmark[0], {}) for benchmark in benchmarks])

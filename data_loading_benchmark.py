@@ -3,6 +3,7 @@ import docker
 import time
 import json
 from benchmark import mysql_benchmarks
+from benchmark import postgresql_benchmarks
 from mysqlutils.mysqldockerwrapper import MySqlDockerWrapper
 from mysqlutils.mysqladapter import MySQLAdapter
 from gdal.gdaldockerwrapper import GdalDockerWrapper
@@ -37,6 +38,7 @@ def main():
         ("MySQL", "Airports (No Index)", mysql_benchmarks.LoadAirports(with_index=False)),
         ("MySQL", "Routes (Index)", mysql_benchmarks.LoadRoutes()),
         ("MySQL", "Routes (No Index)", mysql_benchmarks.LoadRoutes(with_index=False)),
+        # ("Postgis", "LoadAirspaces", postgres_benchmarks.LoadAirspaces()),
     ]
 
     benchmark_data = dict([(benchmark[0], {}) for benchmark in benchmarks])
