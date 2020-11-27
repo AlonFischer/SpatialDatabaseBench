@@ -7,7 +7,7 @@ color1 = "xkcd:royal blue"
 color2 = "xkcd:crimson"
 
 
-def create_bar_chart(data, title, y_axis_label, filename):
+def create_bar_chart(data, title, y_axis_label, filename, yscale='linear'):
     """ data is a dictionary of category (string) to dictionaries. Each inner dictionary is a dictionary of bar label (string) to bar height (number)
     """
     logger = logging.getLogger(__name__)
@@ -28,8 +28,9 @@ def create_bar_chart(data, title, y_axis_label, filename):
 
     # Axis labels
     ax.set_xticks(indexes + width/2 * (num_series-1))
-    ax.set_xticklabels(labels, rotation=45, ha='right')
+    ax.set_xticklabels(labels, rotation=-45, ha='left')
     plt.ylabel(y_axis_label)
+    plt.yscale(yscale)
 
     # horizontal gridlines
     ax.grid(axis='y', linestyle=':', zorder=1)

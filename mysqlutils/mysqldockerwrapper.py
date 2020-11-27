@@ -35,11 +35,6 @@ class MySqlDockerWrapper:
                                                                environment=[
                                                                    f"MYSQL_ROOT_PASSWORD={self.root_password}"],
                                                                volumes={self.volume_name: {'bind': self.mysql_data_folder, 'mode': 'rw'}})
-        # wait until MySQL is initialized
-        logs = str(self.container.logs())
-        while '/usr/sbin/mysqld: ready for connections' not in logs:
-            time.sleep(0.5)
-            logs = str(self.container.logs())
 
     def stop_container(self):
         if self.container != None:

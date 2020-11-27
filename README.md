@@ -47,6 +47,12 @@ TODO
     pip3 install -r requirements.txt
     ```
 
+## Benchmarks
+
+* data_loading_benchmark.py - measures the time required to load each dataset with and without a spatial index in MySQL and PostGIS
+* spatial_join_analysis_benchmark.py - measures the time required to perform spatial join and analysis queries in MySQL and PostGIS
+* data_insertion_benchmark.py - measure the time required to insert new data into the tables representing each dataset in MySQL and PostGIS
+
 
 ## Results
 

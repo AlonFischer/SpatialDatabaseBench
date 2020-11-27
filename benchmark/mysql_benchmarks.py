@@ -5,7 +5,8 @@ from mysqlutils.mysqladapter import MySQLAdapter
 from gdal.gdaldockerwrapper import GdalDockerWrapper
 from benchmark.mysql_benchmark import MysqlBenchmark
 from util.coordinate_transform import transform_4326_to_3857
-from util.create_geometry import create_polygon
+from util.create_geometry import create_polygon, create_point, create_linestring
+from util.misc import convert_decimals_to_ints_in_tuples, convert_none_to_null_in_tuples, tuple_to_str
 import docker
 import logging
 
@@ -15,6 +16,14 @@ GEORGIA_BOUNDING_BOX = [(30.3575, -85.6082), (34.9996, -85.6082),
 GEORGIA_BB_4326 = create_polygon(GEORGIA_BOUNDING_BOX)
 GEORGIA_BB_3857 = create_polygon(
     [transform_4326_to_3857(point) for point in GEORGIA_BOUNDING_BOX])
+ATLANTA_COORDS = (33.7483, -84.3911)
+ATLANTA_LOC_4326 = create_point(ATLANTA_COORDS)
+ATLANTA_LOC_3857 = create_point(transform_4326_to_3857(ATLANTA_COORDS))
+SAMPLE_ROUTE = [(33.6290830738968, -84.4350692100728),
+                (36.1369671135132, -86.6847761162769)]
+ROUTE_4326 = create_linestring(SAMPLE_ROUTE)
+ROUTE_3857 = create_linestring(
+    [transform_4326_to_3857(point) for point in SAMPLE_ROUTE])
 
 
 def create_mysql_adapter():
@@ -477,3 +486,341 @@ class RetrievePolygons(MysqlBenchmark):
                 ;"""
         RetrievePolygons._logger.info(f"Query: {cmd}")
         return self.adapter.execute(cmd)
+
+
+class PointNearPoint(MysqlBenchmark):
+    _logger = logging.getLogger(__name__)
+    _title = "Point Near Point"
+
+    def __init__(self, use_projected_crs=True, subsampling_factor=1):
+        super().__init__(create_mysql_adapter(),
+                         PointNearPoint._title, repeat_count=1)
+        self.dataset_suffix = ""
+        if use_projected_crs:
+            self.dataset_suffix = "_3857"
+        self.subsampling_condition = ""
+        if subsampling_factor > 1:
+            self.subsampling_condition = f"MOD(A.OBJECTID, {subsampling_factor}) = 0 AND "
+        self.location = f"{ATLANTA_LOC_3857}, 3857"
+        if not use_projected_crs:
+            self.location = f"{ATLANTA_LOC_4326}, 4326"
+
+    def execute(self):
+        cmd = f"""SELECT A.OBJECTID
+                FROM {DATABASE_NAME}.airports{self.dataset_suffix} A
+                WHERE {self.subsampling_condition} st_distance(A.SHAPE, ST_GeomFromText({self.location}), 'metre') < 50000
+                ;"""
+        PointNearPoint._logger.info(f"Query: {cmd}")
+        return self.adapter.execute(cmd)
+
+
+class PointNearPoint2(MysqlBenchmark):
+    _logger = logging.getLogger(__name__)
+    _title = "Point Near Point 2"
+
+    def __init__(self, use_projected_crs=True, subsampling_factor=1):
+        super().__init__(create_mysql_adapter(),
+                         PointNearPoint2._title, repeat_count=1)
+        self.dataset_suffix = ""
+        if use_projected_crs:
+            self.dataset_suffix = "_3857"
+        self.subsampling_condition = ""
+        if subsampling_factor > 1:
+            self.subsampling_condition = f"WHERE MOD(A.OBJECTID, {subsampling_factor}) = 0"
+        self.location = f"{ATLANTA_LOC_3857}, 3857"
+        if not use_projected_crs:
+            self.location = f"{ATLANTA_LOC_4326}, 4326"
+
+    def execute(self):
+        cmd = f"""SELECT A.OBJECTID, st_distance(A.SHAPE, ST_GeomFromText({self.location}), 'metre') AS dist
+                FROM {DATABASE_NAME}.airports{self.dataset_suffix} A
+                {self.subsampling_condition}
+                ORDER BY dist
+                LIMIT 1
+                ;"""
+        PointNearPoint2._logger.info(f"Query: {cmd}")
+        return self.adapter.execute(cmd)
+
+
+class PointNearLine(MysqlBenchmark):
+    _logger = logging.getLogger(__name__)
+    _title = "Point Near Line"
+
+    def __init__(self, use_projected_crs=True, subsampling_factor=1):
+        super().__init__(create_mysql_adapter(),
+                         PointNearLine._title, repeat_count=1)
+        self.dataset_suffix = ""
+        if use_projected_crs:
+            self.dataset_suffix = "_3857"
+        self.subsampling_condition = ""
+        if subsampling_factor > 1:
+            self.subsampling_condition = f"MOD(R.OBJECTID, {subsampling_factor}) = 0 AND "
+        self.location = f"{ATLANTA_LOC_3857}, 3857"
+        if not use_projected_crs:
+            self.location = f"{ATLANTA_LOC_4326}, 4326"
+
+    def execute(self):
+        cmd = f"""SELECT R.OBJECTID
+                FROM {DATABASE_NAME}.routes{self.dataset_suffix} R
+                WHERE {self.subsampling_condition} st_distance(R.SHAPE, ST_GeomFromText({self.location}), 'metre') < 500000
+                ;"""
+        PointNearLine._logger.info(f"Query: {cmd}")
+        return self.adapter.execute(cmd)
+
+
+class PointNearLine2(MysqlBenchmark):
+    _logger = logging.getLogger(__name__)
+    _title = "Point Near Line 2"
+
+    def __init__(self, use_projected_crs=True, subsampling_factor=1):
+        super().__init__(create_mysql_adapter(),
+                         PointNearLine2._title, repeat_count=1)
+        self.dataset_suffix = ""
+        if use_projected_crs:
+            self.dataset_suffix = "_3857"
+        self.subsampling_condition = ""
+        if subsampling_factor > 1:
+            self.subsampling_condition = f"WHERE MOD(R.OBJECTID, {subsampling_factor}) = 0"
+        self.location = f"{ATLANTA_LOC_3857}, 3857"
+        if not use_projected_crs:
+            self.location = f"{ATLANTA_LOC_4326}, 4326"
+
+    def execute(self):
+        cmd = f"""SELECT R.OBJECTID, st_distance(R.SHAPE, ST_GeomFromText({self.location}), 'metre') AS dist
+                FROM {DATABASE_NAME}.routes{self.dataset_suffix} R
+                {self.subsampling_condition}
+                ORDER BY dist
+                LIMIT 1
+                ;"""
+        PointNearLine2._logger.info(f"Query: {cmd}")
+        return self.adapter.execute(cmd)
+
+
+class PointNearPolygon(MysqlBenchmark):
+    _logger = logging.getLogger(__name__)
+    _title = "Point Near Polygon"
+
+    def __init__(self, use_projected_crs=True, subsampling_factor=1):
+        super().__init__(create_mysql_adapter(),
+                         PointNearPolygon._title, repeat_count=1)
+        self.dataset_suffix = ""
+        if use_projected_crs:
+            self.dataset_suffix = "_3857"
+        self.subsampling_condition = ""
+        if subsampling_factor > 1:
+            self.subsampling_condition = f"MOD(AS1.OBJECTID, {subsampling_factor}) = 0 AND "
+        self.location = f"{ATLANTA_LOC_3857}, 3857"
+        if not use_projected_crs:
+            self.location = f"{ATLANTA_LOC_4326}, 4326"
+
+    def execute(self):
+        cmd = f"""SELECT AS1.OBJECTID
+                FROM {DATABASE_NAME}.airspaces{self.dataset_suffix} AS1
+                WHERE {self.subsampling_condition} st_distance(AS1.SHAPE, ST_GeomFromText({self.location}), 'metre') < 500000
+                ;"""
+        PointNearPolygon._logger.info(f"Query: {cmd}")
+        return self.adapter.execute(cmd)
+
+
+class SinglePointWithinPolygon(MysqlBenchmark):
+    _logger = logging.getLogger(__name__)
+    _title = "Single Point Within Polygon"
+
+    def __init__(self, use_projected_crs=True, subsampling_factor=1):
+        super().__init__(create_mysql_adapter(),
+                         SinglePointWithinPolygon._title, repeat_count=1)
+        self.dataset_suffix = ""
+        if use_projected_crs:
+            self.dataset_suffix = "_3857"
+        self.subsampling_condition = ""
+        if subsampling_factor > 1:
+            self.subsampling_condition = f"MOD(AS1.OBJECTID, {subsampling_factor}) = 0 AND "
+        self.location = f"{ATLANTA_LOC_3857}, 3857"
+        if not use_projected_crs:
+            self.location = f"{ATLANTA_LOC_4326}, 4326"
+
+    def execute(self):
+        cmd = f"""SELECT AS1.OBJECTID
+                FROM {DATABASE_NAME}.airspaces{self.dataset_suffix} AS1
+                WHERE {self.subsampling_condition} st_contains(AS1.SHAPE, ST_GeomFromText({self.location}))
+                ;"""
+        SinglePointWithinPolygon._logger.info(f"Query: {cmd}")
+        return self.adapter.execute(cmd)
+
+
+class LineNearPolygon(MysqlBenchmark):
+    _logger = logging.getLogger(__name__)
+    _title = "Line Near Polygon"
+
+    def __init__(self, use_projected_crs=True, subsampling_factor=1):
+        super().__init__(create_mysql_adapter(),
+                         LineNearPolygon._title, repeat_count=1)
+        self.dataset_suffix = ""
+        if use_projected_crs:
+            self.dataset_suffix = "_3857"
+        self.subsampling_condition = ""
+        if subsampling_factor > 1:
+            self.subsampling_condition = f"MOD(AS1.OBJECTID, {subsampling_factor}) = 0 AND "
+        self.line = f"{ROUTE_3857}, 3857"
+        if not use_projected_crs:
+            self.line = f"{ROUTE_4326}, 4326"
+
+    def execute(self):
+        cmd = f"""SELECT AS1.OBJECTID
+                FROM {DATABASE_NAME}.airspaces{self.dataset_suffix} AS1
+                WHERE {self.subsampling_condition} st_distance(AS1.SHAPE, ST_GeomFromText({self.line}), 'metre') < 500000
+                ;"""
+        LineNearPolygon._logger.info(f"Query: {cmd}")
+        return self.adapter.execute(cmd)
+
+
+class SingleLineIntersectsPolygon(MysqlBenchmark):
+    _logger = logging.getLogger(__name__)
+    _title = "Line Intersects Polygon"
+
+    def __init__(self, use_projected_crs=True, subsampling_factor=1):
+        super().__init__(create_mysql_adapter(),
+                         SingleLineIntersectsPolygon._title, repeat_count=1)
+        self.dataset_suffix = ""
+        if use_projected_crs:
+            self.dataset_suffix = "_3857"
+        self.subsampling_condition = ""
+        if subsampling_factor > 1:
+            self.subsampling_condition = f"MOD(AS1.OBJECTID, {subsampling_factor}) = 0 AND "
+        self.line = f"{ROUTE_3857}, 3857"
+        if not use_projected_crs:
+            self.line = f"{ROUTE_4326}, 4326"
+
+    def execute(self):
+        cmd = f"""SELECT AS1.OBJECTID
+                FROM {DATABASE_NAME}.airspaces{self.dataset_suffix} AS1
+                WHERE {self.subsampling_condition} st_intersects(AS1.SHAPE, ST_GeomFromText({self.line}))
+                ;"""
+        SingleLineIntersectsPolygon._logger.info(f"Query: {cmd}")
+        return self.adapter.execute(cmd)
+
+
+class InsertNewPoints(MysqlBenchmark):
+    _logger = logging.getLogger(__name__)
+    _title = "Insert New Points"
+
+    def __init__(self, use_projected_crs=True):
+        super().__init__(create_mysql_adapter(),
+                         InsertNewPoints._title, repeat_count=1)
+        self.dataset_suffix = ""
+        srid = 4326
+        if use_projected_crs:
+            self.dataset_suffix = "_3857"
+            srid = 3857
+
+        data_to_insert = self.adapter.execute(f"""SELECT ST_AsText(SHAPE), global_id, ident, name, latitude, longitude, elevation, icao_id, type_code, servcity, state, country, operstatus, privateuse, iapexists, dodhiflip, far91, far93, mil_code, airanal, us_high, us_low, ak_high, ak_low, us_area, pacific
+                                                FROM {DATABASE_NAME}.airports{self.dataset_suffix} A
+                                                WHERE A.OBJECTID <= 1000
+                                                ;""")
+        data_to_insert = convert_decimals_to_ints_in_tuples(data_to_insert)
+        # Remove OBJECTID from returned tuples
+        data_to_insert = [f"({50000+idx}, ST_GeomFromText('{t[0]}', {srid}), {tuple_to_str(t[1:])[1:]}"
+                          for idx, t in enumerate(data_to_insert)]
+        self.new_tuples = ', '.join([t for t in data_to_insert])
+
+    def execute(self):
+        cmd = f"""INSERT INTO {DATABASE_NAME}.airports{self.dataset_suffix} (objectid, SHAPE, global_id, ident, name, latitude, longitude, elevation, icao_id, type_code, servcity, state, country, operstatus, privateuse, iapexists, dodhiflip, far91, far93, mil_code, airanal, us_high, us_low, ak_high, ak_low, us_area, pacific)
+                VALUES {self.new_tuples}
+                ;"""
+        # InsertNewPoints._logger.info(f"Query: {cmd}")
+        self.adapter.execute(cmd)
+        self.adapter.commit()
+        return
+
+    def cleanup(self):
+        cmd = f"""DELETE FROM {DATABASE_NAME}.airports{self.dataset_suffix}
+                WHERE OBJECTID >= 50000
+                ;"""
+        InsertNewPoints._logger.info(f"Query: {cmd}")
+        self.adapter.execute(cmd)
+        self.adapter.commit()
+        return
+
+
+class InsertNewLines(MysqlBenchmark):
+    _logger = logging.getLogger(__name__)
+    _title = "Insert New Lines"
+
+    def __init__(self, use_projected_crs=True):
+        super().__init__(create_mysql_adapter(),
+                         InsertNewLines._title, repeat_count=1)
+        self.dataset_suffix = ""
+        srid = 4326
+        if use_projected_crs:
+            self.dataset_suffix = "_3857"
+            srid = 3857
+
+        data_to_insert = self.adapter.execute(f"""SELECT ST_AsText(SHAPE), global_id, ident, level_, wkhr_code, wkhr_rmk, maa_val, maa_uom, mea_e_val, mea_e_uom, mea_w_val, mea_w_uom, gmea_e_val, gmea_e_uom, gmea_w_val, gmea_w_uom, dmea_val, dmea_uom, moca_val, moca_uom, meagap, truetrk, magtrk, revtruetrk, revmagtrk, length_val, copdist, copnav_id, repatcstar, repatcend, direction, freq_class, status, startpt_id, endpt_id, rtport_id, enrinfo_id, widthright, widthleft, width_uom, mca1_val, mca1_uom, mca1_dir, mca2_val, mca2_uom, mca2_dir, mcapt_id, mcapt_type, tflag_code, remarks, ak_low, ak_high, us_low, us_high, type_code, us_area, pacific, nmagtrk, nrevmagtrk, shape__len
+                                                FROM {DATABASE_NAME}.routes{self.dataset_suffix} R
+                                                WHERE R.OBJECTID <= 1000
+                                                ;""")
+        data_to_insert = convert_decimals_to_ints_in_tuples(data_to_insert)
+        # Remove OBJECTID from returned tuples
+        data_to_insert = [f"({50000+idx}, ST_GeomFromText('{t[0]}', {srid}), {tuple_to_str(t[1:])[1:]}"
+                          for idx, t in enumerate(data_to_insert)]
+        self.new_tuples = ', '.join([t for t in data_to_insert])
+
+    def execute(self):
+        cmd = f"""INSERT INTO {DATABASE_NAME}.routes{self.dataset_suffix} (objectid, SHAPE, global_id, ident, level_, wkhr_code, wkhr_rmk, maa_val, maa_uom, mea_e_val, mea_e_uom, mea_w_val, mea_w_uom, gmea_e_val, gmea_e_uom, gmea_w_val, gmea_w_uom, dmea_val, dmea_uom, moca_val, moca_uom, meagap, truetrk, magtrk, revtruetrk, revmagtrk, length_val, copdist, copnav_id, repatcstar, repatcend, direction, freq_class, status, startpt_id, endpt_id, rtport_id, enrinfo_id, widthright, widthleft, width_uom, mca1_val, mca1_uom, mca1_dir, mca2_val, mca2_uom, mca2_dir, mcapt_id, mcapt_type, tflag_code, remarks, ak_low, ak_high, us_low, us_high, type_code, us_area, pacific, nmagtrk, nrevmagtrk, shape__len)
+                VALUES {self.new_tuples}
+                ;"""
+        # InsertNewLines._logger.info(f"Query: {cmd}")
+        self.adapter.execute(cmd)
+        self.adapter.commit()
+        return
+
+    def cleanup(self):
+        cmd = f"""DELETE FROM {DATABASE_NAME}.routes{self.dataset_suffix}
+                WHERE OBJECTID >= 50000
+                ;"""
+        InsertNewLines._logger.info(f"Query: {cmd}")
+        self.adapter.execute(cmd)
+        self.adapter.commit()
+        return
+
+
+class InsertNewPolygons(MysqlBenchmark):
+    _logger = logging.getLogger(__name__)
+    _title = "Insert New Polygons"
+
+    def __init__(self, use_projected_crs=True):
+        super().__init__(create_mysql_adapter(),
+                         InsertNewPolygons._title, repeat_count=1)
+        self.dataset_suffix = ""
+        srid = 4326
+        if use_projected_crs:
+            self.dataset_suffix = "_3857"
+            srid = 3857
+
+        data_to_insert = self.adapter.execute(f"""SELECT ST_AsText(SHAPE), global_id, ident, icao_id, name, upper_desc, upper_val, upper_uom, upper_code, lower_desc, lower_val, lower_uom, lower_code, type_code, local_type, class, mil_code, comm_name, level_, sector, onshore, exclusion, wkhr_code, wkhr_rmk, dst, gmtoffset, cont_agent, city, state, country, adhp_id, us_high, ak_high, ak_low, us_low, us_area, pacific, shape__are, shape__len
+                                                FROM {DATABASE_NAME}.airspaces{self.dataset_suffix} AS1
+                                                WHERE AS1.OBJECTID <= 1000
+                                                ;""")
+        data_to_insert = convert_decimals_to_ints_in_tuples(data_to_insert)
+        # Remove OBJECTID from returned tuples
+        data_to_insert = [f"({50000+idx}, ST_GeomFromText('{t[0]}', {srid}), {tuple_to_str(t[1:])[1:]}"
+                          for idx, t in enumerate(data_to_insert)]
+        self.new_tuples = ', '.join([t for t in data_to_insert])
+
+    def execute(self):
+        cmd = f"""INSERT INTO {DATABASE_NAME}.airspaces{self.dataset_suffix} (objectid, SHAPE, global_id, ident, icao_id, name, upper_desc, upper_val, upper_uom, upper_code, lower_desc, lower_val, lower_uom, lower_code, type_code, local_type, class, mil_code, comm_name, level_, sector, onshore, exclusion, wkhr_code, wkhr_rmk, dst, gmtoffset, cont_agent, city, state, country, adhp_id, us_high, ak_high, ak_low, us_low, us_area, pacific, shape__are, shape__len)
+                VALUES {self.new_tuples}
+                ;"""
+        # InsertNewPolygons._logger.info(f"Query: {cmd}")
+        self.adapter.execute(cmd)
+        self.adapter.commit()
+        return
+
+    def cleanup(self):
+        cmd = f"""DELETE FROM {DATABASE_NAME}.airspaces{self.dataset_suffix}
+                WHERE OBJECTID >= 50000
+                ;"""
+        InsertNewPolygons._logger.info(f"Query: {cmd}")
+        self.adapter.execute(cmd)
+        self.adapter.commit()
+        return
