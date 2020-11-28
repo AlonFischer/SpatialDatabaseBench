@@ -14,9 +14,6 @@ Benchmark for loading datasets
 """
 
 parser = argparse.ArgumentParser(description='Process some integers.')
-parser.add_argument('mode', metavar='M', type=str,
-                    choices=['join', 'analysis'],
-                    help='Constrains which benchmarks are run')
 parser.add_argument('--cleanup', dest='cleanup', action='store_true',
                     help='Remove docker containers and volumes')
 parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',

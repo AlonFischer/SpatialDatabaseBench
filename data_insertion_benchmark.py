@@ -12,9 +12,6 @@ Benchmark for data insertion queries
 """
 
 parser = argparse.ArgumentParser(description='Process some integers.')
-parser.add_argument('mode', metavar='M', type=str,
-                    choices=['join', 'analysis'],
-                    help='Constrains which benchmarks are run')
 parser.add_argument('--init', dest='init', action='store_true',
                     help='Create schemas if necessary and load datasets')
 parser.add_argument('--no-init', dest='init', action='store_false',
