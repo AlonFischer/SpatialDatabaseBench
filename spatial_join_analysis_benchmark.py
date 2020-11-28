@@ -22,6 +22,8 @@ parser.add_argument('--cleanup', dest='cleanup', action='store_true',
                     help='Remove docker containers and volumes')
 parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
                     help='Do not remove docker containers and volumes')
+parser.set_defaults(init=True)
+parser.set_defaults(cleanup=True)
 args = parser.parse_args()
 
 logging.basicConfig(level=logging.INFO)
