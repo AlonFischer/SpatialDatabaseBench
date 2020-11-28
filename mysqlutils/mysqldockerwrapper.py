@@ -17,6 +17,20 @@ class MySqlDockerWrapper:
         self.mysql_data_folder = "/var/lib/mysql"
         self.volume = None
 
+        try:
+            self.get_container()
+        except docker.errors.NotFound:
+            pass
+
+    def get_container(self):
+        try:
+            self.container = self.docker_client.containers.get(
+                self.container_name)
+            MySqlDockerWrapper._logger.info(
+                "Found existing MySQL docker container")
+        except docker.errors.NotFound:
+            MySqlDockerWrapper._logger.info("Container not found")
+
     def start_container(self):
         try:
             self.container = self.docker_client.containers.get(

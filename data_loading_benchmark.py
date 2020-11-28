@@ -1,25 +1,33 @@
 import logging
-import docker
 import time
 import json
+import argparse
+import docker
 from benchmark import mysql_benchmarks
-from benchmark import postgresql_benchmarks
+from plotting.bar_chart import create_bar_chart
+from util.benchmark_helpers import cleanup
 from mysqlutils.mysqldockerwrapper import MySqlDockerWrapper
 from mysqlutils.mysqladapter import MySQLAdapter
-from gdal.gdaldockerwrapper import GdalDockerWrapper
-from plotting.bar_chart import create_bar_chart
 
 """
-Main benchmarking script
+Benchmark for loading datasets
 """
+
+parser = argparse.ArgumentParser(description='Process some integers.')
+parser.add_argument('mode', metavar='M', type=str,
+                    choices=['join', 'analysis'],
+                    help='Constrains which benchmarks are run')
+parser.add_argument('--cleanup', dest='cleanup', action='store_true',
+                    help='Remove docker containers and volumes')
+parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
+                    help='Do not remove docker containers and volumes')
+args = parser.parse_args()
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def main():
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger(__name__)
-
-    start = time.perf_counter()
-
     docker_client = docker.from_env()
     mysql_docker = MySqlDockerWrapper(docker_client)
     mysql_docker.start_container()
@@ -33,9 +41,11 @@ def main():
 
     benchmarks = [
         ("MySQL", "Airspace (Index)", mysql_benchmarks.LoadAirspaces()),
-        ("MySQL", "Airspace (No Index)", mysql_benchmarks.LoadAirspaces(with_index=False)),
+        ("MySQL", "Airspace (No Index)",
+         mysql_benchmarks.LoadAirspaces(with_index=False)),
         ("MySQL", "Airports (Index)", mysql_benchmarks.LoadAirports()),
-        ("MySQL", "Airports (No Index)", mysql_benchmarks.LoadAirports(with_index=False)),
+        ("MySQL", "Airports (No Index)",
+         mysql_benchmarks.LoadAirports(with_index=False)),
         ("MySQL", "Routes (Index)", mysql_benchmarks.LoadRoutes()),
         ("MySQL", "Routes (No Index)", mysql_benchmarks.LoadRoutes(with_index=False)),
         # ("Postgis", "LoadAirspaces", postgres_benchmarks.LoadAirspaces()),
@@ -56,13 +66,12 @@ def main():
     create_bar_chart(benchmark_data, "Time to Load Dataset",
                      "Seconds", "figures/data_loading_benchmark.png")
 
-    mysql_docker.stop_container()
-    mysql_docker.remove_container()
-    mysql_docker.remove_volume()
-
-    end = time.perf_counter()
-    logger.info(f"Total benchmark time: {(end-start)/60} minutes")
+    if args.cleanup:
+        cleanup()
 
 
 if __name__ == "__main__":
+    start = time.perf_counter()
     main()
+    end = time.perf_counter()
+    logger.info(f"Total benchmark time: {(end-start)/60} minutes")
