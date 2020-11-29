@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 def create_line_graph(data, title, x_axis_label, y_axis_label, filename, yscale='linear'):
     """ data is a dictionary of category (string) to dictionaries. Each inner dictionary is a dictionary of bar label (string) to bar height (number)
     """
-    fig, ax = plt.subplots(figsize=(10, 5))
+    fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(10, 5))
 
     rcParams['mathtext.default'] = 'regular'
 
@@ -29,31 +29,35 @@ def create_line_graph(data, title, x_axis_label, y_axis_label, filename, yscale=
     # num_data_points = len(labels)
     # indexes = np.arange(num_data_points) * (num_series+1) * width
 
+    ax_list = [ax[0][0], ax[0][1], ax[1][0], ax[1][1]]
+
     for idx, series in enumerate(data):
         # bar_heights = [data[series].get(label, 0) for label in labels]
         x_vals = np.array(list(data[series].keys()))
         y_vals = np.array([data[series][x_val] for x_val in x_vals])
-        ax.plot(x_vals, y_vals, label=series, zorder=2, marker='o',
-                linewidth=2, markersize=6)
+        ax_list[idx % len(ax_list)].plot(x_vals, y_vals, label=series, zorder=2, marker='o',
+                                    linewidth=2, markersize=6)
 
     # Axis labels
     # ax.set_xticks(x_ticks)
     # ax.set_xticklabels(x_tick_labels, fontdict={
     #                    'fontsize': rcParams['axes.titlesize']})
-    plt.xlabel(x_axis_label)
-    plt.ylabel(y_axis_label)
-    plt.yscale('log')
-    plt.xscale('log')
-    ax.xaxis.set_major_formatter(FormatStrFormatter('%.3g'))
-    ax.xaxis.set_minor_formatter(FormatStrFormatter('%.3g'))
-    ax.yaxis.set_major_formatter(FormatStrFormatter('%.3g'))
 
-    # horizontal gridlines
-    ax.grid(axis='y', linestyle=':', zorder=1)
+    for subplot in ax_list:
+        plt.xlabel(x_axis_label)
+        plt.ylabel(y_axis_label)
+        plt.yscale('log')
+        plt.xscale('log')
+        subplot.xaxis.set_major_formatter(FormatStrFormatter('%.3g'))
+        subplot.xaxis.set_minor_formatter(FormatStrFormatter('%.3g'))
+        subplot.yaxis.set_major_formatter(FormatStrFormatter('%.3g'))
 
-    # Misc properties
-    ax.legend(bbox_to_anchor=(1, 1), loc="upper left")
-    ax.set_title(title)
+        # horizontal gridlines
+        subplot.grid(axis='y', linestyle=':', zorder=1)
+
+        # Misc properties
+        subplot.legend(bbox_to_anchor=(1, 1), loc="upper left")
+    fig.suptitle(title)
 
     fig.savefig(filename, bbox_inches='tight', dpi=300)
 
@@ -74,11 +78,15 @@ if __name__ == "__main__":
                         help='Constrains which benchmarks are run')
     args = parser.parse_args()
 
-    output_file = f"subsampling_{args.mode}_benchmark"
+    output_file = f"subsampling_index_{args.mode}_benchmark"
+    data_files = [f"subsampling_{args.mode}_benchmark.json",
+                  f"subsampling_{args.mode}_benchmark_no_index.json"]
+
     benchmark_data = {}
-    with open(f"results/{output_file}.json", 'r') as file:
-        benchmark_data = json.loads(file.read(),
-                                    object_hook=lambda d: {float(k) if isfloat(k) else k: v for k, v in d.items()})
+    for data_file in data_files:
+        with open(f"results/{data_file}", 'r') as file:
+            benchmark_data.update(json.loads(file.read(),
+                                             object_hook=lambda d: {float(k) if isfloat(k) else k: v for k, v in d.items()}))
 
     logger.info(benchmark_data)
 

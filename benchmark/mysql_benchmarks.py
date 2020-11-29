@@ -324,7 +324,7 @@ class RetrievePoints(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         RetrievePoints._title, repeat_count=1)
+                         RetrievePoints._title, repeat_count=10)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -350,7 +350,7 @@ class LongestLine(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         LongestLine._title, repeat_count=1)
+                         LongestLine._title, repeat_count=10)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -373,7 +373,7 @@ class TotalLength(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         TotalLength._title, repeat_count=1)
+                         TotalLength._title, repeat_count=10)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -392,17 +392,17 @@ class TotalLength(MysqlBenchmark):
 
 class RetrieveLines(MysqlBenchmark):
     _logger = logging.getLogger(__name__)
-    _title = "Total Length"
+    _title = "Retrieve Lines"
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         RetrieveLines._title, repeat_count=1)
+                         RetrieveLines._title, repeat_count=10)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
         self.subsampling_condition = ""
         if subsampling_factor > 1:
-            self.subsampling_condition = f"WHERE MOD(R.OBJECTID, {subsampling_factor}) = 0 AND"
+            self.subsampling_condition = f"MOD(R.OBJECTID, {subsampling_factor}) = 0 AND"
         self.bounding_box = f"{GEORGIA_BB_3857}, 3857"
         if not use_projected_crs:
             self.bounding_box = f"{GEORGIA_BB_4326}, 4326"
@@ -422,7 +422,7 @@ class LargestArea(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         LargestArea._title, repeat_count=1)
+                         LargestArea._title, repeat_count=10)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -445,7 +445,7 @@ class TotalArea(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         TotalArea._title, repeat_count=1)
+                         TotalArea._title, repeat_count=10)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -468,7 +468,7 @@ class RetrievePolygons(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         RetrievePolygons._title, repeat_count=1)
+                         RetrievePolygons._title, repeat_count=10)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -494,7 +494,7 @@ class PointNearPoint(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         PointNearPoint._title, repeat_count=1)
+                         PointNearPoint._title, repeat_count=10)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -520,7 +520,7 @@ class PointNearPoint2(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         PointNearPoint2._title, repeat_count=1)
+                         PointNearPoint2._title, repeat_count=10)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -548,7 +548,7 @@ class PointNearLine(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         PointNearLine._title, repeat_count=1)
+                         PointNearLine._title, repeat_count=10)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -574,7 +574,7 @@ class PointNearLine2(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         PointNearLine2._title, repeat_count=1)
+                         PointNearLine2._title, repeat_count=10)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -602,7 +602,7 @@ class PointNearPolygon(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         PointNearPolygon._title, repeat_count=1)
+                         PointNearPolygon._title, repeat_count=10)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -628,7 +628,7 @@ class SinglePointWithinPolygon(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         SinglePointWithinPolygon._title, repeat_count=1)
+                         SinglePointWithinPolygon._title, repeat_count=10)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -654,7 +654,7 @@ class LineNearPolygon(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         LineNearPolygon._title, repeat_count=1)
+                         LineNearPolygon._title, repeat_count=10)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -680,7 +680,7 @@ class SingleLineIntersectsPolygon(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         SingleLineIntersectsPolygon._title, repeat_count=1)
+                         SingleLineIntersectsPolygon._title, repeat_count=10)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
