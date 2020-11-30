@@ -13,7 +13,7 @@ if __name__ == "__main__":
                         help='Constrains which benchmarks are run')
     args = parser.parse_args()
 
-    output_file = "index_benchmark"
+    output_file = f"{args.mode}_index_benchmark"
     data_files = [f"{args.mode}_benchmark.json",
                   f"{args.mode}_benchmark_no_index.json"]
 

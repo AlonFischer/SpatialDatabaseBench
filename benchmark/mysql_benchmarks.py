@@ -824,3 +824,61 @@ class InsertNewPolygons(MysqlBenchmark):
         self.adapter.execute(cmd)
         self.adapter.commit()
         return
+
+
+class AirspacesSize(MysqlBenchmark):
+    _logger = logging.getLogger(__name__)
+    _title = "Airspaces Size"
+
+    def __init__(self, use_projected_crs=True):
+        super().__init__(create_mysql_adapter(),
+                         AirspacesSize._title, repeat_count=1)
+        self.dataset_suffix = ""
+        if use_projected_crs:
+            self.dataset_suffix = "_3857"
+
+    def execute(self):
+        cmd = f"""SELECT (data_length+index_length)/power(1024,2) tablesize_mb
+                FROM information_schema.tables
+                WHERE table_schema='{DATABASE_NAME}' and table_name='airspaces{self.dataset_suffix}'
+                ;"""
+        AirspacesSize._logger.info(cmd)
+        return self.adapter.execute(cmd)
+
+class AirportsSize(MysqlBenchmark):
+    _logger = logging.getLogger(__name__)
+    _title = "Airports Size"
+
+    def __init__(self, use_projected_crs=True):
+        super().__init__(create_mysql_adapter(),
+                         AirportsSize._title, repeat_count=1)
+        self.dataset_suffix = ""
+        if use_projected_crs:
+            self.dataset_suffix = "_3857"
+
+    def execute(self):
+        cmd = f"""SELECT (data_length+index_length)/power(1024,2) tablesize_mb
+                FROM information_schema.tables
+                WHERE table_schema='{DATABASE_NAME}' and table_name='airports{self.dataset_suffix}'
+                ;"""
+        AirportsSize._logger.info(cmd)
+        return self.adapter.execute(cmd)
+
+class RoutesSize(MysqlBenchmark):
+    _logger = logging.getLogger(__name__)
+    _title = "Routes Size"
+
+    def __init__(self, use_projected_crs=True):
+        super().__init__(create_mysql_adapter(),
+                         RoutesSize._title, repeat_count=1)
+        self.dataset_suffix = ""
+        if use_projected_crs:
+            self.dataset_suffix = "_3857"
+
+    def execute(self):
+        cmd = f"""SELECT (data_length+index_length)/power(1024,2) tablesize_mb
+                FROM information_schema.tables
+                WHERE table_schema='{DATABASE_NAME}' and table_name='routes{self.dataset_suffix}'
+                ;"""
+        RoutesSize._logger.info(cmd)
+        return self.adapter.execute(cmd)

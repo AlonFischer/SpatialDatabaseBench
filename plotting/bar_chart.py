@@ -22,7 +22,7 @@ def autolabel(rects, ax):
         label_position = height + height * 0.05  # + (y_height * 0.01)
 
         ax.text(rect.get_x() + rect.get_width()/2., label_position,
-                '{:.3g}'.format(float(height)),
+                '{:.4g}'.format(float(height)),
                 ha='center', va='bottom', rotation=90)
 
 
@@ -50,7 +50,7 @@ def create_bar_chart(data, title, y_axis_label, filename, yscale='linear'):
     ax.set_xticklabels(labels, rotation=-45, ha='left')
     plt.ylabel(y_axis_label)
     plt.yscale(yscale)
-    ax.yaxis.set_major_formatter(FormatStrFormatter('%.3g'))
+    ax.yaxis.set_major_formatter(FormatStrFormatter('%.4g'))
 
     # horizontal gridlines
     ax.grid(axis='y', linestyle=':', zorder=1)
