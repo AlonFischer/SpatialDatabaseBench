@@ -3,8 +3,12 @@ import time
 import json
 import argparse
 from benchmark import mysql_benchmarks
+from benchmark import postgresql_benchmarks
+from mysqlutils.mysqldockerwrapper import MySqlDockerWrapper
+from mysqlutils.mysqladapter import MySQLAdapter
+from gdal.gdaldockerwrapper import GdalDockerWrapper
 from plotting.bar_chart import create_bar_chart
-from util.benchmark_helpers import init, cleanup
+from util.benchmark_helpers import init, cleanup, start_container
 
 """
 Benchmark for spatial join and analysis queries
@@ -14,16 +18,16 @@ parser = argparse.ArgumentParser(description='Process some integers.')
 parser.add_argument('mode', metavar='M', type=str,
                     choices=['join', 'analysis'],
                     help='Constrains which benchmarks are run')
-parser.add_argument('--init', dest='init', action='store_true',
+parser.add_argument('--init', dest='init', action='store_const', const=True, default=False,
                     help='Create schemas if necessary and load datasets')
-parser.add_argument('--no-init', dest='init', action='store_false',
-                    help='Do not create schemas and load datasets')
-parser.add_argument('--cleanup', dest='cleanup', action='store_true',
+#parser.add_argument('--no-init', dest='init', action='store_false',
+#                    help='Do not create schemas and load datasets')
+parser.add_argument('--cleanup', dest='cleanup', action='store_const', const=True, default=False,
                     help='Remove docker containers and volumes')
-parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
-                    help='Do not remove docker containers and volumes')
-parser.set_defaults(init=True)
-parser.set_defaults(cleanup=True)
+#parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
+#                    help='Do not remove docker containers and volumes')
+#parser.set_defaults(init=True)
+#parser.set_defaults(cleanup=True)
 args = parser.parse_args()
 
 logging.basicConfig(level=logging.INFO)
@@ -32,21 +36,27 @@ logger = logging.getLogger(__name__)
 
 def main():
     if args.init:
+        print("Initing DB")
         init()
+    else:
+        print("Reusing existing DB")
+        start_container()
 
     join_benchmarks = [
-        ("MySQL", "PointEqualsPoint", mysql_benchmarks.PointEqualsPoint()),
-        ("MySQL", "PointIntersectsLine", mysql_benchmarks.PointIntersectsLine()),
-        ("MySQL", "PointWithinPolygon", mysql_benchmarks.PointWithinPolygon()),
-        ("MySQL", "LineIntersectsPolygon", mysql_benchmarks.LineIntersectsPolygon()),
-        ("MySQL", "LineWithinPolygon", mysql_benchmarks.LineWithinPolygon()),
-        ("MySQL", "LineIntersectsLine", mysql_benchmarks.LineIntersectsLine()),
-        ("MySQL", "PolygonEqualsPolygon", mysql_benchmarks.PolygonEqualsPolygon()),
-        ("MySQL", "PolygonDisjointPolygon",
-         mysql_benchmarks.PolygonDisjointPolygon(subsampling_factor=10)),
-        ("MySQL", "PolygonIntersectsPolygon",
-         mysql_benchmarks.PolygonIntersectsPolygon()),
-        ("MySQL", "PolygonWithinPolygon", mysql_benchmarks.PolygonWithinPolygon()),
+        #("MySQL", "PointEqualsPoint", mysql_benchmarks.PointEqualsPoint()),
+        ("Postgis", "PointEqualsPoint", postgresql_benchmarks.PointEqualsPoint()),
+        #("MySQL", "PointIntersectsLine", mysql_benchmarks.PointIntersectsLine()),
+        ("Postgis", "PointIntersectsLine", postgresql_benchmarks.PointIntersectsLine()),
+        ("Postgis", "PointWithinPolygon", postgresql_benchmarks.PointWithinPolygon()),
+        ("Postgis", "LineIntersectsPolygon", postgresql_benchmarks.LineIntersectsPolygon()),
+        ("Postgis", "LineWithinPolygon", postgresql_benchmarks.LineWithinPolygon()),
+        ("Postgis", "LineIntersectsLine", postgresql_benchmarks.LineIntersectsLine()),
+        ("Postgis", "PolygonEqualsPolygon", postgresql_benchmarks.PolygonEqualsPolygon()),
+        ("Postgis", "PolygonDisjointPolygon",
+         postgresql_benchmarks.PolygonDisjointPolygon(subsampling_factor=10)),
+        ("Postgis", "PolygonIntersectsPolygon",
+         postgresql_benchmarks.PolygonIntersectsPolygon()),
+        ("Postgis", "PolygonWithinPolygon", postgresql_benchmarks.PolygonWithinPolygon()),
     ]
 
     analysis_benchmarks = [

@@ -3,9 +3,9 @@ import time
 import json
 import argparse
 import docker
-from benchmark import mysql_benchmarks
+from benchmark import mysql_benchmarks, postgresql_benchmarks
 from plotting.bar_chart import create_bar_chart
-from util.benchmark_helpers import cleanup
+from util.benchmark_helpers import cleanup, start_container
 from mysqlutils.mysqldockerwrapper import MySqlDockerWrapper
 from mysqlutils.mysqladapter import MySQLAdapter
 
@@ -14,11 +14,11 @@ Benchmark for loading datasets
 """
 
 parser = argparse.ArgumentParser(description='Process some integers.')
-parser.add_argument('--cleanup', dest='cleanup', action='store_true',
+parser.add_argument('--cleanup', dest='cleanup', action='store_const', const=True, default=False,
                     help='Remove docker containers and volumes')
-parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
-                    help='Do not remove docker containers and volumes')
-parser.set_defaults(cleanup=True)
+#parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
+#                    help='Do not remove docker containers and volumes')
+#parser.set_defaults(cleanup=True)
 args = parser.parse_args()
 
 logging.basicConfig(level=logging.INFO)
@@ -26,9 +26,10 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-    docker_client = docker.from_env()
-    mysql_docker = MySqlDockerWrapper(docker_client)
-    mysql_docker.start_container()
+    start_container()
+    #docker_client = docker.from_env()
+    #mysql_docker = MySqlDockerWrapper(docker_client)
+    #mysql_docker.start_container()
 
     # Recreate schema
     mysql_adapter = MySQLAdapter("root", "root-password")
@@ -38,15 +39,17 @@ def main():
     mysql_adapter.execute(f"CREATE SCHEMA {schema_name}")
 
     benchmarks = [
-        ("MySQL", "Airspace (Index)", mysql_benchmarks.LoadAirspaces()),
-        ("MySQL", "Airspace (No Index)",
-         mysql_benchmarks.LoadAirspaces(with_index=False)),
-        ("MySQL", "Airports (Index)", mysql_benchmarks.LoadAirports()),
-        ("MySQL", "Airports (No Index)",
-         mysql_benchmarks.LoadAirports(with_index=False)),
-        ("MySQL", "Routes (Index)", mysql_benchmarks.LoadRoutes()),
-        ("MySQL", "Routes (No Index)", mysql_benchmarks.LoadRoutes(with_index=False)),
-        # ("Postgis", "LoadAirspaces", postgres_benchmarks.LoadAirspaces()),
+        #("MySQL", "Airspace (Index)", mysql_benchmarks.LoadAirspaces()),
+        #("MySQL", "Airspace (No Index)",
+        # mysql_benchmarks.LoadAirspaces(with_index=False)),
+        #("MySQL", "Airports (Index)", mysql_benchmarks.LoadAirports()),
+        #("MySQL", "Airports (No Index)",
+        # mysql_benchmarks.LoadAirports(with_index=False)),
+        #("MySQL", "Routes (Index)", mysql_benchmarks.LoadRoutes()),
+        #("MySQL", "Routes (No Index)", mysql_benchmarks.LoadRoutes(with_index=False)),
+        ("Postgis", "LoadAirspaces", postgresql_benchmarks.LoadAirspaces()),
+        ("Postgis", "LoadAirports", postgresql_benchmarks.LoadAirports()),
+        ("Postgis", "LoadRoutess", postgresql_benchmarks.LoadRoutes()),
     ]
 
     benchmark_data = dict([(benchmark[0], {}) for benchmark in benchmarks])
