@@ -65,11 +65,16 @@ class GdalDockerWrapper:
         GdalDockerWrapper._logger.info(cmd)
         return self.run_command(cmd)
 
-    # TODO: fix GCS dataset importing for postgis
-    def import_to_postgis(self, source, table_name, create_spatial_index="GIST", schema_name="spatialdatasets", host="127.0.0.1", port=5432, user="postgres", password="root-password"):
+    def import_to_postgis(self, source, table_name, 
+        create_spatial_index="GIST", 
+        schema_name="spatialdatasets", 
+        host="127.0.0.1", port=5432, user="postgres", password="root-password",
+        gcs_type = "geometry"
+    ):
         """ source should be relative to the datasets folder
         """
         # create_spatial_index = {"NONE", "GIST" (default), "SPGIST", "BRIN"}
+        # gcs_type = {"geometry", "geography"}
         if not create_spatial_index:
             create_spatial_index = "NONE"
         # ogr2ogr can't into multipolygon so we need manual `-nlt PROMOTE_TO_MULTI`
@@ -80,6 +85,7 @@ class GdalDockerWrapper:
             -nlt PROMOTE_TO_MULTI
             -overwrite
             -lco FID=OBJECTID
-            -lco SPATIAL_INDEX={create_spatial_index}"""
+            -lco SPATIAL_INDEX={create_spatial_index}
+            -lco GEOM_TYPE={gcs_type}"""
         GdalDockerWrapper._logger.info(cmd)
         return self.run_command(cmd)

@@ -249,7 +249,27 @@ class PolygonWithinPolygon(PgSubsampledBenchmark):
         return self.adapter_np.execute(cmd)
 
 
-class LongestLine(PgSubsampledBenchmark):
+class PgSubsampledAggregateBenchmark(PostgreSQLBenchmark):
+    _logger = logging.getLogger(__name__)
+    _title = "Base class"
+    dataset_suffix = ""
+    subsampling_condition = ""
+    _object_names = []
+
+    def __init__(self, use_projected_crs=True, subsampling_factor=1):
+        super().__init__(self._title, repeat_count=3)
+        self.dataset_suffix = ""
+        if use_projected_crs:
+            self.dataset_suffix = "_3857"
+        self.subsampling_condition = ""
+        if subsampling_factor > 1:
+            self.subsampling_condition += f"WHERE MOD({self._object_names[0]}.OBJECTID, {subsampling_factor}) = 0"
+
+    def execute(self):
+        raise NotImplementedError
+
+
+class LongestLine(PgSubsampledAggregateBenchmark):
     _logger = logging.getLogger(__name__)
     _title = "Longest Line"
     _object_names = ["R"]
@@ -263,7 +283,7 @@ class LongestLine(PgSubsampledBenchmark):
         return self.adapter_np.execute(cmd)
 
 
-class TotalLength(PgSubsampledBenchmark):
+class TotalLength(PgSubsampledAggregateBenchmark):
     _logger = logging.getLogger(__name__)
     _title = "Total Length"
     _object_names = ["R"]
@@ -277,7 +297,7 @@ class TotalLength(PgSubsampledBenchmark):
         return self.adapter_np.execute(cmd)
 
 
-class LargestArea(PgSubsampledBenchmark):
+class LargestArea(PgSubsampledAggregateBenchmark):
     _logger = logging.getLogger(__name__)
     _title = "Largest Area"
     _object_names = ["AS1"]
@@ -291,7 +311,7 @@ class LargestArea(PgSubsampledBenchmark):
         return self.adapter_np.execute(cmd)
 
 
-class TotalArea(PgSubsampledBenchmark):
+class TotalArea(PgSubsampledAggregateBenchmark):
     _logger = logging.getLogger(__name__)
     _title = "Total Area"
     _object_names = ["AS1"]

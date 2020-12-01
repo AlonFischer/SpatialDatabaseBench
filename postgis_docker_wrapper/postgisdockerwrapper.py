@@ -51,8 +51,7 @@ class PostgisDockerWrapper:
                                                                volumes={self.volume_name: {
                                                                    'bind': self.postgis_data_folder, 'mode': 'rw'}},
                                                                command="postgres")
-        # wait until MySQL is initialized
-        # TODO: Fix this
+        # wait until PostGIS is initialized
         logs = str(self.container.logs())
         while 'listening on IPv6 address "::", port 5432' not in logs:
             # print(logs)
