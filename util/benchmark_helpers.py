@@ -8,7 +8,7 @@ from gdal.gdaldockerwrapper import GdalDockerWrapper
 import logging
 
 
-def init(create_spatial_index=True, import_gcs=False):
+def init(create_spatial_index=True, import_gcs=False, parallel_query_execution=False):
     # TODO: Woradorn make spatial index a string for postgis
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
@@ -18,7 +18,7 @@ def init(create_spatial_index=True, import_gcs=False):
     mysql_docker.start_container()
 
     postgis_docker_wrapper = PostgisDockerWrapper(docker_client)
-    postgis_docker_wrapper.start_container()
+    postgis_docker_wrapper.start_container(parallel_query_execution=parallel_query_execution)
 
     # Create schema
     mysql_adapter = MySQLAdapter("root", "root-password")

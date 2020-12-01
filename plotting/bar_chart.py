@@ -56,7 +56,7 @@ def create_bar_chart(data, title, y_axis_label, filename, yscale='linear'):
     ax.grid(axis='y', linestyle=':', zorder=1)
 
     # misc properties
-    ax.legend(loc='best')
+    ax.legend(bbox_to_anchor=(1, 1), loc="upper left")
     ax.set_title(title)
     ax.margins(y=0.15)
 

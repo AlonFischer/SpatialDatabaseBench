@@ -26,6 +26,12 @@ parser.add_argument('--no-index', dest='index', action='store_const', const=Fals
                     help='Do not create spatial index on datasets')
 parser.add_argument('--no-pcs', dest='pcs', action='store_const', const=False, default=True,
                     help='Do not create spatial index on datasets')
+parser.add_argument('--parallel', dest='parallel', action='store_const', const=True, default=False,
+                    help='Execute queries with multiple threads when possible')
+parser.add_argument('--no-mysql', dest='mysql', action='store_const', const=False, default=True,
+                    help='Disable mysql benchmarks')
+parser.add_argument('--no-postgis', dest='postgis', action='store_const', const=False, default=True,
+                    help='Disable postgis benchmarks')
 args = parser.parse_args()
 
 logging.basicConfig(level=logging.INFO)
@@ -35,119 +41,130 @@ logger = logging.getLogger(__name__)
 def main():
     if args.init:
         logger.info("Initing DB")
-        init(create_spatial_index=args.index, import_gcs=not args.pcs)
+        init(create_spatial_index=args.index, import_gcs=not args.pcs,
+             parallel_query_execution=args.parallel)
     else:
         logger.info("Reusing existing DB")
         start_container()
 
     mysql_group_name = f"MySQL{' (No Index)' if not args.index else ''}{ ' (GCS)' if not args.pcs else ''}"
-    postgis_group_name = f"Postgis{' (No Index)' if not args.index else ''}{ ' (GCS)' if not args.pcs else ''}"
+    postgis_group_name = f"Postgis{' (No Index)' if not args.index else ''}{ ' (GCS)' if not args.pcs else ''}{ ' (Parallel)' if args.parallel else ''}"
 
-    join_benchmarks = [
-        (mysql_group_name, "PointEqualsPoint",
-         mysql_benchmarks.PointEqualsPoint(use_projected_crs=args.pcs)),
-        (mysql_group_name, "PointIntersectsLine",
-         mysql_benchmarks.PointIntersectsLine(use_projected_crs=args.pcs)),
-        (mysql_group_name, "PointWithinPolygon",
-         mysql_benchmarks.PointWithinPolygon(use_projected_crs=args.pcs)),
-        (mysql_group_name, "LineIntersectsPolygon",
-         mysql_benchmarks.LineIntersectsPolygon(use_projected_crs=args.pcs)),
-        (mysql_group_name, "LineWithinPolygon",
-         mysql_benchmarks.LineWithinPolygon(use_projected_crs=args.pcs)),
-        (mysql_group_name, "LineIntersectsLine",
-         mysql_benchmarks.LineIntersectsLine(use_projected_crs=args.pcs)),
-        (mysql_group_name, "PolygonEqualsPolygon",
-         mysql_benchmarks.PolygonEqualsPolygon(use_projected_crs=args.pcs)),
-        (mysql_group_name, "PolygonDisjointPolygon",
-         mysql_benchmarks.PolygonDisjointPolygon(use_projected_crs=args.pcs, subsampling_factor=10)),
-        (mysql_group_name, "PolygonIntersectsPolygon",
-         mysql_benchmarks.PolygonIntersectsPolygon(use_projected_crs=args.pcs)),
-        (mysql_group_name, "PolygonWithinPolygon",
-         mysql_benchmarks.PolygonWithinPolygon(use_projected_crs=args.pcs)),
-        (postgis_group_name, "PointEqualsPoint",
-         postgresql_benchmarks.PointEqualsPoint(use_projected_crs=args.pcs)),
-        (postgis_group_name, "PointIntersectsLine",
-         postgresql_benchmarks.PointIntersectsLine(use_projected_crs=args.pcs)),
-        (postgis_group_name, "PointWithinPolygon",
-         postgresql_benchmarks.PointWithinPolygon(use_projected_crs=args.pcs)),
-        (postgis_group_name, "LineIntersectsPolygon",
-         postgresql_benchmarks.LineIntersectsPolygon(use_projected_crs=args.pcs)),
-        (postgis_group_name, "LineWithinPolygon",
-         postgresql_benchmarks.LineWithinPolygon(use_projected_crs=args.pcs)),
-        (postgis_group_name, "LineIntersectsLine",
-         postgresql_benchmarks.LineIntersectsLine(use_projected_crs=args.pcs)),
-        (postgis_group_name, "PolygonEqualsPolygon",
-         postgresql_benchmarks.PolygonEqualsPolygon(use_projected_crs=args.pcs)),
-        (postgis_group_name, "PolygonDisjointPolygon",
-         postgresql_benchmarks.PolygonDisjointPolygon(use_projected_crs=args.pcs, subsampling_factor=10)),
-        (postgis_group_name, "PolygonIntersectsPolygon",
-         postgresql_benchmarks.PolygonIntersectsPolygon(use_projected_crs=args.pcs)),
-        (postgis_group_name, "PolygonWithinPolygon",
-         postgresql_benchmarks.PolygonWithinPolygon(use_projected_crs=args.pcs)),
-    ]
+    join_benchmarks = []
+    if args.mysql:
+        join_benchmarks.extend([
+            (mysql_group_name, "PointEqualsPoint",
+             mysql_benchmarks.PointEqualsPoint(use_projected_crs=args.pcs)),
+            (mysql_group_name, "PointIntersectsLine",
+             mysql_benchmarks.PointIntersectsLine(use_projected_crs=args.pcs)),
+            (mysql_group_name, "PointWithinPolygon",
+             mysql_benchmarks.PointWithinPolygon(use_projected_crs=args.pcs)),
+            (mysql_group_name, "LineIntersectsPolygon",
+             mysql_benchmarks.LineIntersectsPolygon(use_projected_crs=args.pcs)),
+            (mysql_group_name, "LineWithinPolygon",
+             mysql_benchmarks.LineWithinPolygon(use_projected_crs=args.pcs)),
+            (mysql_group_name, "LineIntersectsLine",
+             mysql_benchmarks.LineIntersectsLine(use_projected_crs=args.pcs)),
+            (mysql_group_name, "PolygonEqualsPolygon",
+             mysql_benchmarks.PolygonEqualsPolygon(use_projected_crs=args.pcs)),
+            (mysql_group_name, "PolygonDisjointPolygon",
+             mysql_benchmarks.PolygonDisjointPolygon(use_projected_crs=args.pcs, subsampling_factor=10)),
+            (mysql_group_name, "PolygonIntersectsPolygon",
+             mysql_benchmarks.PolygonIntersectsPolygon(use_projected_crs=args.pcs)),
+            (mysql_group_name, "PolygonWithinPolygon",
+             mysql_benchmarks.PolygonWithinPolygon(use_projected_crs=args.pcs)),
+        ])
+    if args.postgis:
+        join_benchmarks.extend([
+            (postgis_group_name, "PointEqualsPoint",
+             postgresql_benchmarks.PointEqualsPoint(use_projected_crs=args.pcs)),
+            (postgis_group_name, "PointIntersectsLine",
+             postgresql_benchmarks.PointIntersectsLine(use_projected_crs=args.pcs)),
+            (postgis_group_name, "PointWithinPolygon",
+             postgresql_benchmarks.PointWithinPolygon(use_projected_crs=args.pcs)),
+            (postgis_group_name, "LineIntersectsPolygon",
+             postgresql_benchmarks.LineIntersectsPolygon(use_projected_crs=args.pcs)),
+            (postgis_group_name, "LineWithinPolygon",
+             postgresql_benchmarks.LineWithinPolygon(use_projected_crs=args.pcs)),
+            (postgis_group_name, "LineIntersectsLine",
+             postgresql_benchmarks.LineIntersectsLine(use_projected_crs=args.pcs)),
+            (postgis_group_name, "PolygonEqualsPolygon",
+             postgresql_benchmarks.PolygonEqualsPolygon(use_projected_crs=args.pcs)),
+            (postgis_group_name, "PolygonDisjointPolygon",
+             postgresql_benchmarks.PolygonDisjointPolygon(use_projected_crs=args.pcs, subsampling_factor=10)),
+            (postgis_group_name, "PolygonIntersectsPolygon",
+             postgresql_benchmarks.PolygonIntersectsPolygon(use_projected_crs=args.pcs)),
+            (postgis_group_name, "PolygonWithinPolygon",
+             postgresql_benchmarks.PolygonWithinPolygon(use_projected_crs=args.pcs)),
+        ])
 
-    analysis_benchmarks = [
-        (mysql_group_name, "RetrievePoints",
-         mysql_benchmarks.RetrievePoints(use_projected_crs=args.pcs)),
-        (mysql_group_name, "LongestLine",
-         mysql_benchmarks.LongestLine(use_projected_crs=args.pcs)),
-        (mysql_group_name, "TotalLength",
-         mysql_benchmarks.TotalLength(use_projected_crs=args.pcs)),
-        (mysql_group_name, "RetrieveLines",
-         mysql_benchmarks.RetrieveLines(use_projected_crs=args.pcs)),
-        (mysql_group_name, "LargestArea",
-         mysql_benchmarks.LargestArea(use_projected_crs=args.pcs)),
-        (mysql_group_name, "TotalArea",
-         mysql_benchmarks.TotalArea(use_projected_crs=args.pcs)),
-        (mysql_group_name, "RetrievePolygons",
-         mysql_benchmarks.RetrievePolygons(use_projected_crs=args.pcs)),
-        (mysql_group_name, "PointNearPoint",
-         mysql_benchmarks.PointNearPoint(use_projected_crs=args.pcs)),
-        (mysql_group_name, "PointNearPoint2",
-         mysql_benchmarks.PointNearPoint2(use_projected_crs=args.pcs)),
-        (mysql_group_name, "PointNearLine",
-         mysql_benchmarks.PointNearLine(use_projected_crs=args.pcs)),
-        (mysql_group_name, "PointNearLine2",
-         mysql_benchmarks.PointNearLine2(use_projected_crs=args.pcs)),
-        (mysql_group_name, "PointNearPolygon",
-         mysql_benchmarks.PointNearPolygon(use_projected_crs=args.pcs)),
-        (mysql_group_name, "SinglePointWithinPolygon",
-         mysql_benchmarks.SinglePointWithinPolygon(use_projected_crs=args.pcs)),
-        (mysql_group_name, "LineNearPolygon",
-         mysql_benchmarks.LineNearPolygon(use_projected_crs=args.pcs)),
-        (mysql_group_name, "SingleLineIntersectsPolygon",
-         mysql_benchmarks.SingleLineIntersectsPolygon(use_projected_crs=args.pcs)),
-        (postgis_group_name, "RetrievePoints",
-         postgresql_benchmarks.RetrievePoints(use_projected_crs=args.pcs)),
-        (postgis_group_name, "LongestLine",
-         postgresql_benchmarks.LongestLine(use_projected_crs=args.pcs)),
-        (postgis_group_name, "TotalLength",
-         postgresql_benchmarks.TotalLength(use_projected_crs=args.pcs)),
-        (postgis_group_name, "RetrieveLines",
-         postgresql_benchmarks.RetrieveLines(use_projected_crs=args.pcs)),
-        (postgis_group_name, "LargestArea",
-         postgresql_benchmarks.LargestArea(use_projected_crs=args.pcs)),
-        (postgis_group_name, "TotalArea",
-         postgresql_benchmarks.TotalArea(use_projected_crs=args.pcs)),
-        (postgis_group_name, "RetrievePolygons",
-         postgresql_benchmarks.RetrievePolygons(use_projected_crs=args.pcs)),
-        (postgis_group_name, "PointNearPoint",
-         postgresql_benchmarks.PointNearPoint(use_projected_crs=args.pcs)),
-        (postgis_group_name, "PointNearPoint2",
-         postgresql_benchmarks.PointNearPoint2(use_projected_crs=args.pcs)),
-        (postgis_group_name, "PointNearLine",
-         postgresql_benchmarks.PointNearLine(use_projected_crs=args.pcs)),
-        (postgis_group_name, "PointNearLine2",
-         postgresql_benchmarks.PointNearLine2(use_projected_crs=args.pcs)),
-        (postgis_group_name, "PointNearPolygon",
-         postgresql_benchmarks.PointNearPolygon(use_projected_crs=args.pcs)),
-        (postgis_group_name, "SinglePointWithinPolygon",
-         postgresql_benchmarks.SinglePointWithinPolygon(use_projected_crs=args.pcs)),
-        (postgis_group_name, "LineNearPolygon",
-         postgresql_benchmarks.LineNearPolygon(use_projected_crs=args.pcs)),
-        (postgis_group_name, "SingleLineIntersectsPolygon",
-         postgresql_benchmarks.SingleLineIntersectsPolygon(use_projected_crs=args.pcs)),
-    ]
+    analysis_benchmarks = []
+    if args.mysql:
+        analysis_benchmarks.extend([
+            (mysql_group_name, "RetrievePoints",
+             mysql_benchmarks.RetrievePoints(use_projected_crs=args.pcs)),
+            (mysql_group_name, "LongestLine",
+             mysql_benchmarks.LongestLine(use_projected_crs=args.pcs)),
+            (mysql_group_name, "TotalLength",
+             mysql_benchmarks.TotalLength(use_projected_crs=args.pcs)),
+            (mysql_group_name, "RetrieveLines",
+             mysql_benchmarks.RetrieveLines(use_projected_crs=args.pcs)),
+            (mysql_group_name, "LargestArea",
+             mysql_benchmarks.LargestArea(use_projected_crs=args.pcs)),
+            (mysql_group_name, "TotalArea",
+             mysql_benchmarks.TotalArea(use_projected_crs=args.pcs)),
+            (mysql_group_name, "RetrievePolygons",
+             mysql_benchmarks.RetrievePolygons(use_projected_crs=args.pcs)),
+            (mysql_group_name, "PointNearPoint",
+             mysql_benchmarks.PointNearPoint(use_projected_crs=args.pcs)),
+            (mysql_group_name, "PointNearPoint2",
+             mysql_benchmarks.PointNearPoint2(use_projected_crs=args.pcs)),
+            (mysql_group_name, "PointNearLine",
+             mysql_benchmarks.PointNearLine(use_projected_crs=args.pcs)),
+            (mysql_group_name, "PointNearLine2",
+             mysql_benchmarks.PointNearLine2(use_projected_crs=args.pcs)),
+            (mysql_group_name, "PointNearPolygon",
+             mysql_benchmarks.PointNearPolygon(use_projected_crs=args.pcs)),
+            (mysql_group_name, "SinglePointWithinPolygon",
+             mysql_benchmarks.SinglePointWithinPolygon(use_projected_crs=args.pcs)),
+            (mysql_group_name, "LineNearPolygon",
+             mysql_benchmarks.LineNearPolygon(use_projected_crs=args.pcs)),
+            (mysql_group_name, "SingleLineIntersectsPolygon",
+             mysql_benchmarks.SingleLineIntersectsPolygon(use_projected_crs=args.pcs)),
+        ])
+    if args.postgis:
+        analysis_benchmarks.extend([
+            (postgis_group_name, "RetrievePoints",
+             postgresql_benchmarks.RetrievePoints(use_projected_crs=args.pcs)),
+            (postgis_group_name, "LongestLine",
+             postgresql_benchmarks.LongestLine(use_projected_crs=args.pcs)),
+            (postgis_group_name, "TotalLength",
+             postgresql_benchmarks.TotalLength(use_projected_crs=args.pcs)),
+            (postgis_group_name, "RetrieveLines",
+             postgresql_benchmarks.RetrieveLines(use_projected_crs=args.pcs)),
+            (postgis_group_name, "LargestArea",
+             postgresql_benchmarks.LargestArea(use_projected_crs=args.pcs)),
+            (postgis_group_name, "TotalArea",
+             postgresql_benchmarks.TotalArea(use_projected_crs=args.pcs)),
+            (postgis_group_name, "RetrievePolygons",
+             postgresql_benchmarks.RetrievePolygons(use_projected_crs=args.pcs)),
+            (postgis_group_name, "PointNearPoint",
+             postgresql_benchmarks.PointNearPoint(use_projected_crs=args.pcs)),
+            (postgis_group_name, "PointNearPoint2",
+             postgresql_benchmarks.PointNearPoint2(use_projected_crs=args.pcs)),
+            (postgis_group_name, "PointNearLine",
+             postgresql_benchmarks.PointNearLine(use_projected_crs=args.pcs)),
+            (postgis_group_name, "PointNearLine2",
+             postgresql_benchmarks.PointNearLine2(use_projected_crs=args.pcs)),
+            (postgis_group_name, "PointNearPolygon",
+             postgresql_benchmarks.PointNearPolygon(use_projected_crs=args.pcs)),
+            (postgis_group_name, "SinglePointWithinPolygon",
+             postgresql_benchmarks.SinglePointWithinPolygon(use_projected_crs=args.pcs)),
+            (postgis_group_name, "LineNearPolygon",
+             postgresql_benchmarks.LineNearPolygon(use_projected_crs=args.pcs)),
+            (postgis_group_name, "SingleLineIntersectsPolygon",
+             postgresql_benchmarks.SingleLineIntersectsPolygon(use_projected_crs=args.pcs)),
+        ])
 
     benchmarks = []
     if args.mode == 'join':
@@ -174,6 +191,8 @@ def main():
         output_file += '_no_index'
     if not args.pcs:
         output_file += '_gcs'
+    if args.parallel:
+        output_file += '_parallel'
 
     with open(f"results/{output_file}.json", 'w') as file:
         file.write(json.dumps(benchmark_data, indent=4))
