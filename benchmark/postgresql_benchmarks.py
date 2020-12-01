@@ -38,7 +38,7 @@ class PGLoaderBenchmark(PostgreSQLBenchmark):
     _table_name = None
 
     def __init__(self, with_index=True):
-        super().__init__(self._title, 1)
+        super().__init__(self._title, 2)
         docker_client = docker.from_env()
         self.gdal_docker_wrapper = GdalDockerWrapper(docker_client)
         self.with_index = with_index
@@ -48,11 +48,12 @@ class PGLoaderBenchmark(PostgreSQLBenchmark):
 
     def cleanup(self):
         #print("Cleanup called")
-        #self._logger.info(self.adapter_p.execute(
+        # self._logger.info(self.adapter_p.execute(
         #    f"SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name;"))
 
         self.adapter_p.execute(
             f"DROP TABLE {self._table_name}")
+
 
 class LoadAirspaces(PGLoaderBenchmark):
     _logger = logging.getLogger(__name__)
@@ -64,6 +65,7 @@ class LoadAirspaces(PGLoaderBenchmark):
             "airspace/Class_Airspace.shp", self._table_name)
         LoadAirspaces._logger.info("Load done")
 
+
 class LoadAirports(PGLoaderBenchmark):
     _logger = logging.getLogger(__name__)
     _title = "Load Airports"
@@ -73,6 +75,7 @@ class LoadAirports(PGLoaderBenchmark):
         self.gdal_docker_wrapper.import_to_postgis(
             "airports/Airports.shp", self._table_name)
         LoadAirports._logger.info("Load done")
+
 
 class LoadRoutes(PGLoaderBenchmark):
     _logger = logging.getLogger(__name__)
@@ -93,7 +96,7 @@ class PgSubsampledBenchmark(PostgreSQLBenchmark):
     _object_names = []
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
-        super().__init__(self._title, repeat_count=1)
+        super().__init__(self._title, repeat_count=3)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -104,6 +107,7 @@ class PgSubsampledBenchmark(PostgreSQLBenchmark):
 
     def execute(self):
         raise NotImplementedError
+
 
 class PointEqualsPoint(PgSubsampledBenchmark):
     _logger = logging.getLogger(__name__)
@@ -118,6 +122,7 @@ class PointEqualsPoint(PgSubsampledBenchmark):
         self._logger.info(f"Query: {cmd}")
         return self.adapter_np.execute(cmd)
 
+
 class PointIntersectsLine(PgSubsampledBenchmark):
     _logger = logging.getLogger(__name__)
     _title = "Point Intersects Line"
@@ -130,6 +135,7 @@ class PointIntersectsLine(PgSubsampledBenchmark):
                 ;"""
         self._logger.info(f"Query: {cmd}")
         return self.adapter_np.execute(cmd)
+
 
 class PointWithinPolygon(PgSubsampledBenchmark):
     _logger = logging.getLogger(__name__)
@@ -144,6 +150,7 @@ class PointWithinPolygon(PgSubsampledBenchmark):
         self._logger.info(f"Query: {cmd}")
         return self.adapter_np.execute(cmd)
 
+
 class LineIntersectsPolygon(PgSubsampledBenchmark):
     _logger = logging.getLogger(__name__)
     _title = "Line Intersects Polygon"
@@ -156,6 +163,7 @@ class LineIntersectsPolygon(PgSubsampledBenchmark):
                 ;"""
         self._logger.info(f"Query: {cmd}")
         return self.adapter_np.execute(cmd)
+
 
 class LineWithinPolygon(PgSubsampledBenchmark):
     _logger = logging.getLogger(__name__)
@@ -170,6 +178,7 @@ class LineWithinPolygon(PgSubsampledBenchmark):
         self._logger.info(f"Query: {cmd}")
         return self.adapter_np.execute(cmd)
 
+
 class LineIntersectsLine(PgSubsampledBenchmark):
     _logger = logging.getLogger(__name__)
     _title = "Line Intersects Line"
@@ -182,6 +191,7 @@ class LineIntersectsLine(PgSubsampledBenchmark):
                 ;"""
         self._logger.info(f"Query: {cmd}")
         return self.adapter_np.execute(cmd)
+
 
 class PolygonEqualsPolygon(PgSubsampledBenchmark):
     _logger = logging.getLogger(__name__)
@@ -196,6 +206,7 @@ class PolygonEqualsPolygon(PgSubsampledBenchmark):
         self._logger.info(f"Query: {cmd}")
         return self.adapter_np.execute(cmd)
 
+
 class PolygonDisjointPolygon(PgSubsampledBenchmark):
     _logger = logging.getLogger(__name__)
     _title = "Polygon Disjoint Polygon"
@@ -208,6 +219,7 @@ class PolygonDisjointPolygon(PgSubsampledBenchmark):
                 ;"""
         self._logger.info(f"Query: {cmd}")
         return self.adapter_np.execute(cmd)
+
 
 class PolygonIntersectsPolygon(PgSubsampledBenchmark):
     _logger = logging.getLogger(__name__)
@@ -222,6 +234,7 @@ class PolygonIntersectsPolygon(PgSubsampledBenchmark):
         self._logger.info(f"Query: {cmd}")
         return self.adapter_np.execute(cmd)
 
+
 class PolygonWithinPolygon(PgSubsampledBenchmark):
     _logger = logging.getLogger(__name__)
     _title = "Polygon Within Polygon"
@@ -234,6 +247,7 @@ class PolygonWithinPolygon(PgSubsampledBenchmark):
                 ;"""
         self._logger.info(f"Query: {cmd}")
         return self.adapter_np.execute(cmd)
+
 
 class LongestLine(PgSubsampledBenchmark):
     _logger = logging.getLogger(__name__)
@@ -248,6 +262,7 @@ class LongestLine(PgSubsampledBenchmark):
         LongestLine._logger.info(f"Query: {cmd}")
         return self.adapter_np.execute(cmd)
 
+
 class TotalLength(PgSubsampledBenchmark):
     _logger = logging.getLogger(__name__)
     _title = "Total Length"
@@ -261,6 +276,7 @@ class TotalLength(PgSubsampledBenchmark):
         TotalLength._logger.info(f"Query: {cmd}")
         return self.adapter_np.execute(cmd)
 
+
 class LargestArea(PgSubsampledBenchmark):
     _logger = logging.getLogger(__name__)
     _title = "Largest Area"
@@ -273,6 +289,7 @@ class LargestArea(PgSubsampledBenchmark):
                 ;"""
         LargestArea._logger.info(f"Query: {cmd}")
         return self.adapter_np.execute(cmd)
+
 
 class TotalArea(PgSubsampledBenchmark):
     _logger = logging.getLogger(__name__)
@@ -294,7 +311,7 @@ class PgBoxedBenchmark(PostgreSQLBenchmark):
     _object_names = []
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
-        super().__init__(self._title, repeat_count=1)
+        super().__init__(self._title, repeat_count=3)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -314,6 +331,7 @@ class PgBoxedBenchmark(PostgreSQLBenchmark):
 
     def execute(self):
         raise NotImplementedError
+
 
 class RetrievePoints(PgBoxedBenchmark):
     _logger = logging.getLogger(__name__)
@@ -478,7 +496,7 @@ class InsertNewPoints(PostgreSQLBenchmark):
     _title = "Insert New Points"
 
     def __init__(self, use_projected_crs=True):
-        super().__init__(self._title, repeat_count=1)
+        super().__init__(self._title, repeat_count=3)
         self.dataset_suffix = ""
         srid = 4326
         if use_projected_crs:
@@ -519,7 +537,7 @@ class InsertNewLines(PostgreSQLBenchmark):
     _title = "Insert New Lines"
 
     def __init__(self, use_projected_crs=True):
-        super().__init__(self._title, repeat_count=1)
+        super().__init__(self._title, repeat_count=3)
         self.dataset_suffix = ""
         srid = 4326
         if use_projected_crs:
@@ -561,7 +579,7 @@ class InsertNewPolygons(PostgreSQLBenchmark):
 
     def __init__(self, use_projected_crs=True):
         super().__init__(create_mysql_adapter(),
-                         InsertNewPolygons._title, repeat_count=1)
+                         InsertNewPolygons._title, repeat_count=3)
         self.dataset_suffix = ""
         srid = 4326
         if use_projected_crs:
