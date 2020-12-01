@@ -69,7 +69,7 @@ def main():
          mysql_benchmarks.LoadAirports(with_index=False)),
         ("MySQL", "Routes (Index)", mysql_benchmarks.LoadRoutes()),
         ("MySQL", "Routes (No Index)", mysql_benchmarks.LoadRoutes(with_index=False)),
-        # TODO: Add benchmarks for postgres without index
+        # TODO: Woradorn Add benchmarks for postgres without index
         ("Postgis", "Airspace (Index)", postgresql_benchmarks.LoadAirspaces()),
         ("Postgis", "Airports (Index)", postgresql_benchmarks.LoadAirports()),
         ("Postgis", "Routes (Index)", postgresql_benchmarks.LoadRoutes()),

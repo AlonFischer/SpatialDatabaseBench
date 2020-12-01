@@ -8,7 +8,8 @@ from gdal.gdaldockerwrapper import GdalDockerWrapper
 import logging
 
 
-def init():
+def init(create_spatial_index=True, import_gcs=False):
+    # TODO: Woradorn make spatial index a string for postgis
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
 
@@ -28,11 +29,19 @@ def init():
 
     gdal_docker_wrapper = GdalDockerWrapper(docker_client)
     gdal_docker_wrapper.import_to_mysql(
-        "airspace_3857/Class_Airspace.shp", "airspaces_3857", create_spatial_index=True)
+        "airspace_3857/Class_Airspace.shp", "airspaces_3857", create_spatial_index=create_spatial_index)
     gdal_docker_wrapper.import_to_mysql(
-        "airports_3857/Airports.shp", "airports_3857", create_spatial_index=True)
+        "airports_3857/Airports.shp", "airports_3857", create_spatial_index=create_spatial_index)
     gdal_docker_wrapper.import_to_mysql(
-        "routes_3857/ATS_Route.shp", "routes_3857", create_spatial_index=True)
+        "routes_3857/ATS_Route.shp", "routes_3857", create_spatial_index=create_spatial_index)
+
+    if import_gcs:
+        gdal_docker_wrapper.import_to_mysql(
+            "airspace/Class_Airspace.shp", "airspaces", create_spatial_index=create_spatial_index)
+        gdal_docker_wrapper.import_to_mysql(
+            "airports/Airports.shp", "airports", create_spatial_index=create_spatial_index)
+        gdal_docker_wrapper.import_to_mysql(
+            "routes/ATS_Route.shp", "routes", create_spatial_index=create_spatial_index)
 
     # Postgis
     # Recreate schema
@@ -64,20 +73,21 @@ def init():
     # Import airports
     logger.info(gdal_docker_wrapper.import_to_postgis(
         "airports_3857/Airports.shp", "airports_3857", schema_name=schema_name))
-    logger.info(gdal_docker_wrapper.import_to_postgis(
-        "airports/Airports.shp", "airports", schema_name=schema_name))
-
     # Import airspaces
     logger.info(gdal_docker_wrapper.import_to_postgis(
         "airspace_3857/Class_Airspace.shp", "airspaces_3857", schema_name=schema_name))
-    logger.info(gdal_docker_wrapper.import_to_postgis(
-        "airspace/Class_Airspace.shp", "airspaces", schema_name=schema_name))
-
     # Import routes
     logger.info(gdal_docker_wrapper.import_to_postgis(
         "routes_3857/ATS_Route.shp", "routes_3857", schema_name=schema_name))
-    logger.info(gdal_docker_wrapper.import_to_postgis(
-        "routes/ATS_Route.shp", "routes", schema_name=schema_name))
+
+    if import_gcs:
+        logger.info(gdal_docker_wrapper.import_to_postgis(
+            "airports/Airports.shp", "airports", schema_name=schema_name))
+        logger.info(gdal_docker_wrapper.import_to_postgis(
+            "airspace/Class_Airspace.shp", "airspaces", schema_name=schema_name))
+        logger.info(gdal_docker_wrapper.import_to_postgis(
+            "routes/ATS_Route.shp", "routes", schema_name=schema_name))
+
     logger.info(postgis_adapter.execute(
         f"SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name;"))
 
