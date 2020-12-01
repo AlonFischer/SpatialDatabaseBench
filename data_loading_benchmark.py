@@ -16,9 +16,6 @@ Benchmark for loading datasets
 parser = argparse.ArgumentParser(description='Process some integers.')
 parser.add_argument('--cleanup', dest='cleanup', action='store_const', const=True, default=False,
                     help='Remove docker containers and volumes')
-#parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
-#                    help='Do not remove docker containers and volumes')
-#parser.set_defaults(cleanup=True)
 args = parser.parse_args()
 
 logging.basicConfig(level=logging.INFO)
@@ -39,14 +36,14 @@ def main():
     mysql_adapter.execute(f"CREATE SCHEMA {schema_name}")
 
     benchmarks = [
-        #("MySQL", "Airspace (Index)", mysql_benchmarks.LoadAirspaces()),
-        #("MySQL", "Airspace (No Index)",
-        # mysql_benchmarks.LoadAirspaces(with_index=False)),
-        #("MySQL", "Airports (Index)", mysql_benchmarks.LoadAirports()),
-        #("MySQL", "Airports (No Index)",
-        # mysql_benchmarks.LoadAirports(with_index=False)),
-        #("MySQL", "Routes (Index)", mysql_benchmarks.LoadRoutes()),
-        #("MySQL", "Routes (No Index)", mysql_benchmarks.LoadRoutes(with_index=False)),
+        ("MySQL", "Airspace (Index)", mysql_benchmarks.LoadAirspaces()),
+        ("MySQL", "Airspace (No Index)",
+         mysql_benchmarks.LoadAirspaces(with_index=False)),
+        ("MySQL", "Airports (Index)", mysql_benchmarks.LoadAirports()),
+        ("MySQL", "Airports (No Index)",
+         mysql_benchmarks.LoadAirports(with_index=False)),
+        ("MySQL", "Routes (Index)", mysql_benchmarks.LoadRoutes()),
+        ("MySQL", "Routes (No Index)", mysql_benchmarks.LoadRoutes(with_index=False)),
         ("Postgis", "LoadAirspaces", postgresql_benchmarks.LoadAirspaces()),
         ("Postgis", "LoadAirports", postgresql_benchmarks.LoadAirports()),
         ("Postgis", "LoadRoutess", postgresql_benchmarks.LoadRoutes()),

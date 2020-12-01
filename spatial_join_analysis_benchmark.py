@@ -20,14 +20,8 @@ parser.add_argument('mode', metavar='M', type=str,
                     help='Constrains which benchmarks are run')
 parser.add_argument('--init', dest='init', action='store_const', const=True, default=False,
                     help='Create schemas if necessary and load datasets')
-#parser.add_argument('--no-init', dest='init', action='store_false',
-#                    help='Do not create schemas and load datasets')
 parser.add_argument('--cleanup', dest='cleanup', action='store_const', const=True, default=False,
                     help='Remove docker containers and volumes')
-#parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
-#                    help='Do not remove docker containers and volumes')
-#parser.set_defaults(init=True)
-#parser.set_defaults(cleanup=True)
 args = parser.parse_args()
 
 logging.basicConfig(level=logging.INFO)
@@ -60,23 +54,40 @@ def main():
     ]
 
     analysis_benchmarks = [
-        ("MySQL", "RetrievePoints", mysql_benchmarks.RetrievePoints()),
-        ("MySQL", "LongestLine", mysql_benchmarks.LongestLine()),
-        ("MySQL", "TotalLength", mysql_benchmarks.TotalLength()),
-        ("MySQL", "RetrieveLines", mysql_benchmarks.RetrieveLines()),
-        ("MySQL", "LargestArea", mysql_benchmarks.LargestArea()),
-        ("MySQL", "TotalArea", mysql_benchmarks.TotalArea()),
-        ("MySQL", "RetrievePolygons", mysql_benchmarks.RetrievePolygons()),
-        ("MySQL", "PointNearPoint", mysql_benchmarks.PointNearPoint()),
-        ("MySQL", "PointNearPoint2", mysql_benchmarks.PointNearPoint2()),
-        ("MySQL", "PointNearLine", mysql_benchmarks.PointNearLine()),
-        ("MySQL", "PointNearLine2", mysql_benchmarks.PointNearLine2()),
-        ("MySQL", "PointNearPolygon", mysql_benchmarks.PointNearPolygon()),
-        ("MySQL", "SinglePointWithinPolygon",
-         mysql_benchmarks.SinglePointWithinPolygon()),
-        ("MySQL", "LineNearPolygon", mysql_benchmarks.LineNearPolygon()),
-        ("MySQL", "SingleLineIntersectsPolygon",
-         mysql_benchmarks.SingleLineIntersectsPolygon()),
+        #("MySQL", "RetrievePoints", mysql_benchmarks.RetrievePoints()),
+        #("MySQL", "LongestLine", mysql_benchmarks.LongestLine()),
+        #("MySQL", "TotalLength", mysql_benchmarks.TotalLength()),
+        #("MySQL", "RetrieveLines", mysql_benchmarks.RetrieveLines()),
+        #("MySQL", "LargestArea", mysql_benchmarks.LargestArea()),
+        #("MySQL", "TotalArea", mysql_benchmarks.TotalArea()),
+        #("MySQL", "RetrievePolygons", mysql_benchmarks.RetrievePolygons()),
+        #("MySQL", "PointNearPoint", mysql_benchmarks.PointNearPoint()),
+        #("MySQL", "PointNearPoint2", mysql_benchmarks.PointNearPoint2()),
+        #("MySQL", "PointNearLine", mysql_benchmarks.PointNearLine()),
+        #("MySQL", "PointNearLine2", mysql_benchmarks.PointNearLine2()),
+        #("MySQL", "PointNearPolygon", mysql_benchmarks.PointNearPolygon()),
+        #("MySQL", "SinglePointWithinPolygon",
+        # mysql_benchmarks.SinglePointWithinPolygon()),
+        #("MySQL", "LineNearPolygon", mysql_benchmarks.LineNearPolygon()),
+        #("MySQL", "SingleLineIntersectsPolygon",
+        # mysql_benchmarks.SingleLineIntersectsPolygon()),
+        ("Postgis", "RetrievePoints", postgresql_benchmarks.RetrievePoints()),
+        ("Postgis", "LongestLine", postgresql_benchmarks.LongestLine()),
+        ("Postgis", "TotalLength", postgresql_benchmarks.TotalLength()),
+        ("Postgis", "RetrieveLines", postgresql_benchmarks.RetrieveLines()),
+        ("Postgis", "LargestArea", postgresql_benchmarks.LargestArea()),
+        ("Postgis", "TotalArea", postgresql_benchmarks.TotalArea()),
+        ("Postgis", "RetrievePolygons", postgresql_benchmarks.RetrievePolygons()),
+        ("Postgis", "PointNearPoint", postgresql_benchmarks.PointNearPoint()),
+        ("Postgis", "PointNearPoint2", postgresql_benchmarks.PointNearPoint2()),
+        ("Postgis", "PointNearLine", postgresql_benchmarks.PointNearLine()),
+        ("Postgis", "PointNearLine2", postgresql_benchmarks.PointNearLine2()),
+        ("Postgis", "PointNearPolygon", postgresql_benchmarks.PointNearPolygon()),
+        ("Postgis", "SinglePointWithinPolygon",
+         postgresql_benchmarks.SinglePointWithinPolygon()),
+        ("Postgis", "LineNearPolygon", postgresql_benchmarks.LineNearPolygon()),
+        ("Postgis", "SingleLineIntersectsPolygon",
+         postgresql_benchmarks.SingleLineIntersectsPolygon()),
     ]
 
     benchmarks = []

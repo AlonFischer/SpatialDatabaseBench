@@ -2,26 +2,20 @@ import logging
 import time
 import json
 import argparse
-from benchmark import mysql_benchmarks
+from benchmark import mysql_benchmarks, postgresql_benchmarks
 from benchmark import postgresql_benchmarks
 from plotting.bar_chart import create_bar_chart
-from util.benchmark_helpers import init, cleanup
+from util.benchmark_helpers import init, cleanup, start_container
 
 """
 Benchmark for data insertion queries
 """
 
 parser = argparse.ArgumentParser(description='Process some integers.')
-parser.add_argument('--init', dest='init', action='store_true',
+parser.add_argument('--init', dest='init', action='store_const', const=True, default=False,
                     help='Create schemas if necessary and load datasets')
-parser.add_argument('--no-init', dest='init', action='store_false',
-                    help='Do not create schemas and load datasets')
-parser.add_argument('--cleanup', dest='cleanup', action='store_true',
+parser.add_argument('--cleanup', dest='cleanup', action='store_const', const=True, default=False,
                     help='Remove docker containers and volumes')
-parser.add_argument('--cleanup', dest='cleanup', action='store_false',
-                    help='Do not remove docker containers and volumes')
-parser.set_defaults(init=True)
-parser.set_defaults(cleanup=True)
 args = parser.parse_args()
 
 logging.basicConfig(level=logging.INFO)
@@ -31,11 +25,16 @@ logger = logging.getLogger(__name__)
 def main():
     if args.init:
         init()
+    else:  
+        start_container()
 
     benchmarks = [
         ("MySQL", "Points", mysql_benchmarks.InsertNewPoints()),
+        ("Postgis", "Points", postgresql_benchmarks.InsertNewPoints()),
         ("MySQL", "Lines", mysql_benchmarks.InsertNewLines()),
+        ("Postgis", "Lines", postgresql_benchmarks.InsertNewLines()),
         ("MySQL", "Polygons", mysql_benchmarks.InsertNewPolygons()),
+        ("Postgis", "Polygons", postgresql_benchmarks.InsertNewPolygons()),
     ]
 
     benchmark_data = dict([(benchmark[0], {}) for benchmark in benchmarks])
