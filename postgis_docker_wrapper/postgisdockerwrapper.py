@@ -31,7 +31,7 @@ class PostgisDockerWrapper:
         except docker.errors.NotFound:
             PostgisDockerWrapper._logger.info("Container not found")
 
-    def start_container(self):
+    def start_container(self, parallel_query_execution=False):
         try:
             self.container = self.docker_client.containers.get(
                 self.container_name)
@@ -41,6 +41,9 @@ class PostgisDockerWrapper:
         except docker.errors.NotFound:
             PostgisDockerWrapper._logger.info(
                 "Creating new Postgis docker container")
+            command = "postgres -c max_parallel_workers_per_gather=0"
+            if parallel_query_execution:
+                command = "postgres"
             self.container = self.docker_client.containers.run(f"{self.image_name}:{self.postgis_version}",
                                                                detach=True,
                                                                name=self.container_name,
@@ -50,7 +53,7 @@ class PostgisDockerWrapper:
                                                                    f"POSTGRES_PASSWORD={self.root_password}"],
                                                                volumes={self.volume_name: {
                                                                    'bind': self.postgis_data_folder, 'mode': 'rw'}},
-                                                               command="postgres")
+                                                               command=command)
         # wait until PostGIS is initialized
         logs = str(self.container.logs())
         while 'listening on IPv6 address "::", port 5432' not in logs:

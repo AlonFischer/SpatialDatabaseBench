@@ -14,14 +14,10 @@ parser = argparse.ArgumentParser(description='Process some integers.')
 parser.add_argument('mode', metavar='M', type=str,
                     choices=['join', 'analysis'],
                     help='Constrains which benchmarks are run')
-parser.add_argument('--init', dest='init', action='store_true',
+parser.add_argument('--init', dest='init', action='store_const', const=True, default=False,
                     help='Create schemas if necessary and load datasets')
-parser.add_argument('--no-init', dest='init', action='store_false',
-                    help='Do not create schemas and load datasets')
-parser.add_argument('--cleanup', dest='cleanup', action='store_true',
+parser.add_argument('--cleanup', dest='cleanup', action='store_const', const=True, default=False,
                     help='Remove docker containers and volumes')
-parser.add_argument('--no-cleanup', dest='cleanup', action='store_false',
-                    help='Do not remove docker containers and volumes')
 parser.add_argument('--no-index', dest='index', action='store_const', const=False, default=True,
                     help='Do not create spatial index on datasets')
 args = parser.parse_args()
