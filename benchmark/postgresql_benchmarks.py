@@ -62,7 +62,7 @@ class LoadAirspaces(PGLoaderBenchmark):
     def execute(self):
         self.gdal_docker_wrapper.import_to_postgis(
             "airspace/Class_Airspace.shp", self._table_name)
-        print("Load done")
+        LoadAirspaces._logger.info("Load done")
 
 class LoadAirports(PGLoaderBenchmark):
     _logger = logging.getLogger(__name__)
@@ -72,7 +72,7 @@ class LoadAirports(PGLoaderBenchmark):
     def execute(self):
         self.gdal_docker_wrapper.import_to_postgis(
             "airports/Airports.shp", self._table_name)
-        print("Load done")
+        LoadAirports._logger.info("Load done")
 
 class LoadRoutes(PGLoaderBenchmark):
     _logger = logging.getLogger(__name__)
@@ -82,7 +82,7 @@ class LoadRoutes(PGLoaderBenchmark):
     def execute(self):
         self.gdal_docker_wrapper.import_to_postgis(
             "routes/ATS_Route.shp", self._table_name)
-        print("Load done")
+        LoadRoutes._logger.info("Load done")
 
 
 class PgSubsampledBenchmark(PostgreSQLBenchmark):

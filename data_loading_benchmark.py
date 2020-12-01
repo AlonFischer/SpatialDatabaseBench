@@ -8,6 +8,8 @@ from plotting.bar_chart import create_bar_chart
 from util.benchmark_helpers import cleanup, start_container
 from mysqlutils.mysqldockerwrapper import MySqlDockerWrapper
 from mysqlutils.mysqladapter import MySQLAdapter
+from postgis_docker_wrapper.postgisdockerwrapper import PostgisDockerWrapper
+from postgis_docker_wrapper.postgisadapter import PostgisAdapter
 
 """
 Benchmark for loading datasets
@@ -26,7 +28,7 @@ def main():
     start_container()
     #docker_client = docker.from_env()
     #mysql_docker = MySqlDockerWrapper(docker_client)
-    #mysql_docker.start_container()
+    # mysql_docker.start_container()
 
     # Recreate schema
     mysql_adapter = MySQLAdapter("root", "root-password")
@@ -34,6 +36,29 @@ def main():
     if schema_name in mysql_adapter.get_schemas():
         mysql_adapter.execute(f"DROP SCHEMA {schema_name}")
     mysql_adapter.execute(f"CREATE SCHEMA {schema_name}")
+
+    # Create database for postgis
+    docker_client = docker.from_env()
+    postgis_docker_wrapper = PostgisDockerWrapper(docker_client)
+    schema_name = "spatialdatasets"
+    logger.info("Running createdb")
+    # Because ogr2ogr can't do CREATE DATABASE for some reason
+    logger.info(postgis_docker_wrapper.inject_command(
+        f"createdb {schema_name} -h 127.0.0.1 -p 5432 -U postgres -w"))
+    logger.info("Schema init done")
+
+    postgis_adapter = PostgisAdapter(
+        user="postgres", password="root-password", persist=True)
+
+    logger.info("Loading extension")
+    logger.info(postgis_adapter.execute_nontransaction(
+        "CREATE EXTENSION IF NOT EXISTS postgis;"))
+    logger.info(postgis_adapter.execute_nontransaction(
+        "CREATE EXTENSION IF NOT EXISTS postgis_raster;"))
+    logger.info(postgis_adapter.execute_nontransaction(
+        "CREATE EXTENSION IF NOT EXISTS postgis_topology;"))
+    logger.info(postgis_adapter.execute_nontransaction(
+        "CREATE EXTENSION IF NOT EXISTS postgis_sfcgal;"))
 
     benchmarks = [
         ("MySQL", "Airspace (Index)", mysql_benchmarks.LoadAirspaces()),
@@ -44,9 +69,10 @@ def main():
          mysql_benchmarks.LoadAirports(with_index=False)),
         ("MySQL", "Routes (Index)", mysql_benchmarks.LoadRoutes()),
         ("MySQL", "Routes (No Index)", mysql_benchmarks.LoadRoutes(with_index=False)),
-        ("Postgis", "LoadAirspaces", postgresql_benchmarks.LoadAirspaces()),
-        ("Postgis", "LoadAirports", postgresql_benchmarks.LoadAirports()),
-        ("Postgis", "LoadRoutess", postgresql_benchmarks.LoadRoutes()),
+        # TODO: Add benchmarks for postgres without index
+        ("Postgis", "Airspace (Index)", postgresql_benchmarks.LoadAirspaces()),
+        ("Postgis", "Airports (Index)", postgresql_benchmarks.LoadAirports()),
+        ("Postgis", "Routes (Index)", postgresql_benchmarks.LoadRoutes()),
     ]
 
     benchmark_data = dict([(benchmark[0], {}) for benchmark in benchmarks])

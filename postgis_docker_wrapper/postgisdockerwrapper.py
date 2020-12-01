@@ -17,15 +17,19 @@ class PostgisDockerWrapper:
         self.postgis_data_folder = "/var/lib/postgresql"
         self.volume = None
 
+        try:
+            self.get_container()
+        except docker.errors.NotFound:
+            pass
+
     def get_container(self):
         try:
             self.container = self.docker_client.containers.get(
                 self.container_name)
-            self.container.start()
             PostgisDockerWrapper._logger.info(
                 "Found existing Postgis docker container")
         except docker.errors.NotFound:
-            print("Container not found")
+            PostgisDockerWrapper._logger.info("Container not found")
 
     def start_container(self):
         try:
@@ -44,29 +48,32 @@ class PostgisDockerWrapper:
                                                                    '5432': 5432},
                                                                environment=[
                                                                    f"POSTGRES_PASSWORD={self.root_password}"],
-                                                               volumes={self.volume_name: {'bind': self.postgis_data_folder, 'mode': 'rw'}},
+                                                               volumes={self.volume_name: {
+                                                                   'bind': self.postgis_data_folder, 'mode': 'rw'}},
                                                                command="postgres")
         # wait until MySQL is initialized
         # TODO: Fix this
         logs = str(self.container.logs())
         while 'listening on IPv6 address "::", port 5432' not in logs:
-            #print(logs)
+            # print(logs)
             time.sleep(0.5)
             logs = str(self.container.logs())
 
     def inject_command(self, cmd):
         if self.container != None:
-            print(f"Executing: {cmd}")
+            PostgisDockerWrapper._logger.info(f"Executing: {cmd}")
             return self.container.exec_run(cmd)
 
     def stop_container(self):
         if self.container != None:
-            PostgisDockerWrapper._logger.info("Stopping Postgis docker container")
+            PostgisDockerWrapper._logger.info(
+                "Stopping Postgis docker container")
             self.container.stop()
 
     def remove_container(self):
         if self.container != None:
-            PostgisDockerWrapper._logger.info("Removing Postgis docker container")
+            PostgisDockerWrapper._logger.info(
+                "Removing Postgis docker container")
             self.container.remove()
 
     def get_logs(self):

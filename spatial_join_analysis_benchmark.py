@@ -30,16 +30,26 @@ logger = logging.getLogger(__name__)
 
 def main():
     if args.init:
-        print("Initing DB")
+        logger.info("Initing DB")
         init()
     else:
-        print("Reusing existing DB")
+        logger.info("Reusing existing DB")
         start_container()
 
     join_benchmarks = [
-        #("MySQL", "PointEqualsPoint", mysql_benchmarks.PointEqualsPoint()),
+        ("MySQL", "PointEqualsPoint", mysql_benchmarks.PointEqualsPoint()),
+        ("MySQL", "PointIntersectsLine", mysql_benchmarks.PointIntersectsLine()),
+        ("MySQL", "PointWithinPolygon", mysql_benchmarks.PointWithinPolygon()),
+        ("MySQL", "LineIntersectsPolygon", mysql_benchmarks.LineIntersectsPolygon()),
+        ("MySQL", "LineWithinPolygon", mysql_benchmarks.LineWithinPolygon()),
+        ("MySQL", "LineIntersectsLine", mysql_benchmarks.LineIntersectsLine()),
+        ("MySQL", "PolygonEqualsPolygon", mysql_benchmarks.PolygonEqualsPolygon()),
+        ("MySQL", "PolygonDisjointPolygon",
+         mysql_benchmarks.PolygonDisjointPolygon(subsampling_factor=10)),
+        ("MySQL", "PolygonIntersectsPolygon",
+         mysql_benchmarks.PolygonIntersectsPolygon()),
+        ("MySQL", "PolygonWithinPolygon", mysql_benchmarks.PolygonWithinPolygon()),
         ("Postgis", "PointEqualsPoint", postgresql_benchmarks.PointEqualsPoint()),
-        #("MySQL", "PointIntersectsLine", mysql_benchmarks.PointIntersectsLine()),
         ("Postgis", "PointIntersectsLine", postgresql_benchmarks.PointIntersectsLine()),
         ("Postgis", "PointWithinPolygon", postgresql_benchmarks.PointWithinPolygon()),
         ("Postgis", "LineIntersectsPolygon", postgresql_benchmarks.LineIntersectsPolygon()),
@@ -54,23 +64,23 @@ def main():
     ]
 
     analysis_benchmarks = [
-        #("MySQL", "RetrievePoints", mysql_benchmarks.RetrievePoints()),
-        #("MySQL", "LongestLine", mysql_benchmarks.LongestLine()),
-        #("MySQL", "TotalLength", mysql_benchmarks.TotalLength()),
-        #("MySQL", "RetrieveLines", mysql_benchmarks.RetrieveLines()),
-        #("MySQL", "LargestArea", mysql_benchmarks.LargestArea()),
-        #("MySQL", "TotalArea", mysql_benchmarks.TotalArea()),
-        #("MySQL", "RetrievePolygons", mysql_benchmarks.RetrievePolygons()),
-        #("MySQL", "PointNearPoint", mysql_benchmarks.PointNearPoint()),
-        #("MySQL", "PointNearPoint2", mysql_benchmarks.PointNearPoint2()),
-        #("MySQL", "PointNearLine", mysql_benchmarks.PointNearLine()),
-        #("MySQL", "PointNearLine2", mysql_benchmarks.PointNearLine2()),
-        #("MySQL", "PointNearPolygon", mysql_benchmarks.PointNearPolygon()),
-        #("MySQL", "SinglePointWithinPolygon",
-        # mysql_benchmarks.SinglePointWithinPolygon()),
-        #("MySQL", "LineNearPolygon", mysql_benchmarks.LineNearPolygon()),
-        #("MySQL", "SingleLineIntersectsPolygon",
-        # mysql_benchmarks.SingleLineIntersectsPolygon()),
+        ("MySQL", "RetrievePoints", mysql_benchmarks.RetrievePoints()),
+        ("MySQL", "LongestLine", mysql_benchmarks.LongestLine()),
+        ("MySQL", "TotalLength", mysql_benchmarks.TotalLength()),
+        ("MySQL", "RetrieveLines", mysql_benchmarks.RetrieveLines()),
+        ("MySQL", "LargestArea", mysql_benchmarks.LargestArea()),
+        ("MySQL", "TotalArea", mysql_benchmarks.TotalArea()),
+        ("MySQL", "RetrievePolygons", mysql_benchmarks.RetrievePolygons()),
+        ("MySQL", "PointNearPoint", mysql_benchmarks.PointNearPoint()),
+        ("MySQL", "PointNearPoint2", mysql_benchmarks.PointNearPoint2()),
+        ("MySQL", "PointNearLine", mysql_benchmarks.PointNearLine()),
+        ("MySQL", "PointNearLine2", mysql_benchmarks.PointNearLine2()),
+        ("MySQL", "PointNearPolygon", mysql_benchmarks.PointNearPolygon()),
+        ("MySQL", "SinglePointWithinPolygon",
+        mysql_benchmarks.SinglePointWithinPolygon()),
+        ("MySQL", "LineNearPolygon", mysql_benchmarks.LineNearPolygon()),
+        ("MySQL", "SingleLineIntersectsPolygon",
+        mysql_benchmarks.SingleLineIntersectsPolygon()),
         ("Postgis", "RetrievePoints", postgresql_benchmarks.RetrievePoints()),
         ("Postgis", "LongestLine", postgresql_benchmarks.LongestLine()),
         ("Postgis", "TotalLength", postgresql_benchmarks.TotalLength()),

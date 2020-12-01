@@ -7,6 +7,7 @@ from gdal.gdaldockerwrapper import GdalDockerWrapper
 
 import logging
 
+
 def init():
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
@@ -14,7 +15,7 @@ def init():
     docker_client = docker.from_env()
     mysql_docker = MySqlDockerWrapper(docker_client)
     mysql_docker.start_container()
-    
+
     postgis_docker_wrapper = PostgisDockerWrapper(docker_client)
     postgis_docker_wrapper.start_container()
 
@@ -36,23 +37,29 @@ def init():
     # Postgis
     # Recreate schema
     schema_name = "spatialdatasets"
-    #print(postgis_adapter.get_schemas())
-    #if schema_name in postgis_adapter.get_schemas():
+    # print(postgis_adapter.get_schemas())
+    # if schema_name in postgis_adapter.get_schemas():
     #    print("Deleting old schema")
     #    logger.info(postgis_adapter.execute_nontransaction(f"DROP DATABASE {schema_name}"))
 
-    print("Running createdb")
+    logger.info("Running createdb")
     # Because ogr2ogr can't do CREATE DATABASE for some reason
-    logger.info(postgis_docker_wrapper.inject_command(f"createdb {schema_name} -h 127.0.0.1 -p 5432 -U postgres -w"))
-    print("Schema init done")
+    logger.info(postgis_docker_wrapper.inject_command(
+        f"createdb {schema_name} -h 127.0.0.1 -p 5432 -U postgres -w"))
+    logger.info("Schema init done")
 
-    postgis_adapter = PostgisAdapter(user="postgres", password="root-password", persist = True)
+    postgis_adapter = PostgisAdapter(
+        user="postgres", password="root-password", persist=True)
 
-    print("Loading extension")
-    logger.info(postgis_adapter.execute_nontransaction("CREATE EXTENSION IF NOT EXISTS postgis;"))
-    logger.info(postgis_adapter.execute_nontransaction("CREATE EXTENSION IF NOT EXISTS postgis_raster;"))
-    logger.info(postgis_adapter.execute_nontransaction("CREATE EXTENSION IF NOT EXISTS postgis_topology;"))
-    logger.info(postgis_adapter.execute_nontransaction("CREATE EXTENSION IF NOT EXISTS postgis_sfcgal;"))
+    logger.info("Loading extension")
+    logger.info(postgis_adapter.execute_nontransaction(
+        "CREATE EXTENSION IF NOT EXISTS postgis;"))
+    logger.info(postgis_adapter.execute_nontransaction(
+        "CREATE EXTENSION IF NOT EXISTS postgis_raster;"))
+    logger.info(postgis_adapter.execute_nontransaction(
+        "CREATE EXTENSION IF NOT EXISTS postgis_topology;"))
+    logger.info(postgis_adapter.execute_nontransaction(
+        "CREATE EXTENSION IF NOT EXISTS postgis_sfcgal;"))
 
     # Import airports
     logger.info(gdal_docker_wrapper.import_to_postgis(
@@ -72,7 +79,7 @@ def init():
     logger.info(gdal_docker_wrapper.import_to_postgis(
         "routes/ATS_Route.shp", "routes", schema_name=schema_name))
     logger.info(postgis_adapter.execute(
-            f"SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name;"))
+        f"SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name;"))
 
 
 def start_container():
@@ -82,6 +89,7 @@ def start_container():
     postgis_docker_wrapper = PostgisDockerWrapper(docker_client)
     postgis_docker_wrapper.start_container()
 
+
 def cleanup():
     docker_client = docker.from_env()
     mysql_docker = MySqlDockerWrapper(docker_client)
@@ -89,3 +97,8 @@ def cleanup():
     mysql_docker.stop_container()
     mysql_docker.remove_container()
     mysql_docker.remove_volume()
+
+    postgis_docker = PostgisDockerWrapper(docker_client)
+    postgis_docker.stop_container()
+    postgis_docker.remove_container()
+    postgis_docker.remove_volume()
