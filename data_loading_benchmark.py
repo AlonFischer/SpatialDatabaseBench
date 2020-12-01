@@ -18,6 +18,8 @@ Benchmark for loading datasets
 parser = argparse.ArgumentParser(description='Process some integers.')
 parser.add_argument('--cleanup', dest='cleanup', action='store_const', const=True, default=False,
                     help='Remove docker containers and volumes')
+parser.add_argument('--db', dest='db', action='store', default='both',
+                    help='Select DB (both/mysql/pg)')
 args = parser.parse_args()
 
 logging.basicConfig(level=logging.INFO)
@@ -69,14 +71,28 @@ def main():
          mysql_benchmarks.LoadAirports(with_index=False)),
         ("MySQL", "Routes (Index)", mysql_benchmarks.LoadRoutes()),
         ("MySQL", "Routes (No Index)", mysql_benchmarks.LoadRoutes(with_index=False)),
-        # TODO: Woradorn Add benchmarks for postgres without index
-        ("Postgis", "Airspace (Index)", postgresql_benchmarks.LoadAirspaces()),
-        ("Postgis", "Airports (Index)", postgresql_benchmarks.LoadAirports()),
-        ("Postgis", "Routes (Index)", postgresql_benchmarks.LoadRoutes()),
+        # Add benchmarks for postgres without index
+        ("Postgis", "Airspace (GIST Index)", postgresql_benchmarks.LoadAirspaces(with_index="GIST")),
+        ("Postgis", "Airspace (SPGIST Index)", postgresql_benchmarks.LoadAirspaces(with_index="SPGIST")),
+        ("Postgis", "Airspace (BRIN Index)", postgresql_benchmarks.LoadAirspaces(with_index="BRIN")),
+        ("Postgis", "Airspace (No index)", postgresql_benchmarks.LoadAirspaces(with_index="NONE")),
+        ("Postgis", "Airports (GIST Index)", postgresql_benchmarks.LoadAirports(with_index="GIST")),
+        ("Postgis", "Airports (SPGIST Index)", postgresql_benchmarks.LoadAirports(with_index="SPGIST")),
+        ("Postgis", "Airports (BRIN Index)", postgresql_benchmarks.LoadAirports(with_index="BRIN")),
+        ("Postgis", "Airports (No index)", postgresql_benchmarks.LoadAirports(with_index="NONE")),
+        ("Postgis", "Routes (GIST Index)", postgresql_benchmarks.LoadRoutes(with_index="GIST")),
+        ("Postgis", "Routes (SPGIST Index)", postgresql_benchmarks.LoadRoutes(with_index="SPGIST")),
+        ("Postgis", "Routes (BRIN Index)", postgresql_benchmarks.LoadRoutes(with_index="BRIN")),
+        ("Postgis", "Routes (No index)", postgresql_benchmarks.LoadRoutes(with_index="NONE")),
     ]
 
     benchmark_data = dict([(benchmark[0], {}) for benchmark in benchmarks])
     for idx, bnchmrk in enumerate(benchmarks):
+        if args.db != 'both':
+            if args.db == 'mysql' and bnchmrk[0] != "MySQL":
+                continue
+            if args.db == 'pg' and bnchmrk[0] != "Postgis":
+                continue
         logger.info(f"Starting benchmark {idx+1}")
         bnchmrk[2].run()
         logger.info(f"Benchmark times: {bnchmrk[2].get_time_measurements()}")

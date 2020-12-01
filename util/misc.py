@@ -31,7 +31,8 @@ def tuple_to_str(tup):
         if val == None:
             output += "NULL, "
         elif isinstance(val, str):
-            escaped_val = val.replace("'", "\\'")
+            # escaped_val = val.replace("'", "\\'")
+            escaped_val = val.replace("'", "")
             output += f"'{str(escaped_val)}', "
         else:
             output += f"{str(val)}, "

@@ -522,8 +522,8 @@ class InsertNewPoints(PostgreSQLBenchmark):
         if use_projected_crs:
             self.dataset_suffix = "_3857"
             srid = 3857
-
-        data_to_insert = self.adapter_np.execute(f"""SELECT ST_AsText(SHAPE), global_id, ident, name, latitude, longitude, elevation, icao_id, type_code, servcity, state, country, operstatus, privateuse, iapexists, dodhiflip, far91, far93, mil_code, airanal, us_high, us_low, ak_high, ak_low, us_area, pacific
+        self.cleanup()
+        data_to_insert = self.adapter_np.execute(f"""SELECT ST_AsText(wkb_geometry), global_id, ident, name, latitude, longitude, elevation, icao_id, type_code, servcity, state, country, operstatus, privateuse, iapexists, dodhiflip, far91, far93, mil_code, airanal, us_high, us_low, ak_high, ak_low, us_area, pacific
                                                 FROM airports{self.dataset_suffix} A
                                                 WHERE A.OBJECTID <= 1000
                                                 ;""")
@@ -534,12 +534,12 @@ class InsertNewPoints(PostgreSQLBenchmark):
         self.new_tuples = ', '.join([t for t in data_to_insert])
 
     def execute(self):
-        cmd = f"""INSERT INTO airports{self.dataset_suffix} (objectid, SHAPE, global_id, ident, name, latitude, longitude, elevation, icao_id, type_code, servcity, state, country, operstatus, privateuse, iapexists, dodhiflip, far91, far93, mil_code, airanal, us_high, us_low, ak_high, ak_low, us_area, pacific)
+        cmd = f"""INSERT INTO airports{self.dataset_suffix} (objectid, wkb_geometry, global_id, ident, name, latitude, longitude, elevation, icao_id, type_code, servcity, state, country, operstatus, privateuse, iapexists, dodhiflip, far91, far93, mil_code, airanal, us_high, us_low, ak_high, ak_low, us_area, pacific)
                 VALUES {self.new_tuples}
                 ;"""
         # InsertNewPoints._logger.info(f"Query: {cmd}")
         self.adapter_p.execute(cmd)
-        self.adapter_p.commit()
+        self.adapter_p.connection.commit()
         return
 
     def cleanup(self):
@@ -548,7 +548,7 @@ class InsertNewPoints(PostgreSQLBenchmark):
                 ;"""
         InsertNewPoints._logger.info(f"Query: {cmd}")
         self.adapter_p.execute(cmd)
-        self.adapter_p.commit()
+        self.adapter_p.connection.commit()
         return
 
 
@@ -563,8 +563,8 @@ class InsertNewLines(PostgreSQLBenchmark):
         if use_projected_crs:
             self.dataset_suffix = "_3857"
             srid = 3857
-
-        data_to_insert = self.adapter_np.execute(f"""SELECT ST_AsText(SHAPE), global_id, ident, level_, wkhr_code, wkhr_rmk, maa_val, maa_uom, mea_e_val, mea_e_uom, mea_w_val, mea_w_uom, gmea_e_val, gmea_e_uom, gmea_w_val, gmea_w_uom, dmea_val, dmea_uom, moca_val, moca_uom, meagap, truetrk, magtrk, revtruetrk, revmagtrk, length_val, copdist, copnav_id, repatcstar, repatcend, direction, freq_class, status, startpt_id, endpt_id, rtport_id, enrinfo_id, widthright, widthleft, width_uom, mca1_val, mca1_uom, mca1_dir, mca2_val, mca2_uom, mca2_dir, mcapt_id, mcapt_type, tflag_code, remarks, ak_low, ak_high, us_low, us_high, type_code, us_area, pacific, nmagtrk, nrevmagtrk, shape__len
+        self.cleanup()
+        data_to_insert = self.adapter_np.execute(f"""SELECT ST_AsText(wkb_geometry), global_id, ident, level_, wkhr_code, wkhr_rmk, maa_val, maa_uom, mea_e_val, mea_e_uom, mea_w_val, mea_w_uom, gmea_e_val, gmea_e_uom, gmea_w_val, gmea_w_uom, dmea_val, dmea_uom, moca_val, moca_uom, meagap, truetrk, magtrk, revtruetrk, revmagtrk, length_val, copdist, copnav_id, repatcstar, repatcend, direction, freq_class, status, startpt_id, endpt_id, rtport_id, enrinfo_id, widthright, widthleft, width_uom, mca1_val, mca1_uom, mca1_dir, mca2_val, mca2_uom, mca2_dir, mcapt_id, mcapt_type, tflag_code, remarks, ak_low, ak_high, us_low, us_high, type_code, us_area, pacific, nmagtrk, nrevmagtrk, shape__len
                                                 FROM routes{self.dataset_suffix} R
                                                 WHERE R.OBJECTID <= 1000
                                                 ;""")
@@ -575,12 +575,12 @@ class InsertNewLines(PostgreSQLBenchmark):
         self.new_tuples = ', '.join([t for t in data_to_insert])
 
     def execute(self):
-        cmd = f"""INSERT INTO routes{self.dataset_suffix} (objectid, SHAPE, global_id, ident, level_, wkhr_code, wkhr_rmk, maa_val, maa_uom, mea_e_val, mea_e_uom, mea_w_val, mea_w_uom, gmea_e_val, gmea_e_uom, gmea_w_val, gmea_w_uom, dmea_val, dmea_uom, moca_val, moca_uom, meagap, truetrk, magtrk, revtruetrk, revmagtrk, length_val, copdist, copnav_id, repatcstar, repatcend, direction, freq_class, status, startpt_id, endpt_id, rtport_id, enrinfo_id, widthright, widthleft, width_uom, mca1_val, mca1_uom, mca1_dir, mca2_val, mca2_uom, mca2_dir, mcapt_id, mcapt_type, tflag_code, remarks, ak_low, ak_high, us_low, us_high, type_code, us_area, pacific, nmagtrk, nrevmagtrk, shape__len)
+        cmd = f"""INSERT INTO routes{self.dataset_suffix} (objectid, wkb_geometry, global_id, ident, level_, wkhr_code, wkhr_rmk, maa_val, maa_uom, mea_e_val, mea_e_uom, mea_w_val, mea_w_uom, gmea_e_val, gmea_e_uom, gmea_w_val, gmea_w_uom, dmea_val, dmea_uom, moca_val, moca_uom, meagap, truetrk, magtrk, revtruetrk, revmagtrk, length_val, copdist, copnav_id, repatcstar, repatcend, direction, freq_class, status, startpt_id, endpt_id, rtport_id, enrinfo_id, widthright, widthleft, width_uom, mca1_val, mca1_uom, mca1_dir, mca2_val, mca2_uom, mca2_dir, mcapt_id, mcapt_type, tflag_code, remarks, ak_low, ak_high, us_low, us_high, type_code, us_area, pacific, nmagtrk, nrevmagtrk, shape__len)
                 VALUES {self.new_tuples}
                 ;"""
         # InsertNewLines._logger.info(f"Query: {cmd}")
         self.adapter_p.execute(cmd)
-        self.adapter_p.commit()
+        self.adapter_p.connection.commit()
         return
 
     def cleanup(self):
@@ -589,7 +589,7 @@ class InsertNewLines(PostgreSQLBenchmark):
                 ;"""
         InsertNewLines._logger.info(f"Query: {cmd}")
         self.adapter_p.execute(cmd)
-        self.adapter_p.commit()
+        self.adapter_p.connection.commit()
         return
 
 
@@ -598,15 +598,14 @@ class InsertNewPolygons(PostgreSQLBenchmark):
     _title = "Insert New Polygons"
 
     def __init__(self, use_projected_crs=True):
-        super().__init__(create_mysql_adapter(),
-                         InsertNewPolygons._title, repeat_count=3)
+        super().__init__(self._title, repeat_count=3)
         self.dataset_suffix = ""
         srid = 4326
         if use_projected_crs:
             self.dataset_suffix = "_3857"
             srid = 3857
-
-        data_to_insert = self.adapter_np.execute(f"""SELECT ST_AsText(SHAPE), global_id, ident, icao_id, name, upper_desc, upper_val, upper_uom, upper_code, lower_desc, lower_val, lower_uom, lower_code, type_code, local_type, class, mil_code, comm_name, level_, sector, onshore, exclusion, wkhr_code, wkhr_rmk, dst, gmtoffset, cont_agent, city, state, country, adhp_id, us_high, ak_high, ak_low, us_low, us_area, pacific, shape__are, shape__len
+        self.cleanup()
+        data_to_insert = self.adapter_np.execute(f"""SELECT ST_AsText(wkb_geometry), global_id, ident, icao_id, name, upper_desc, upper_val, upper_uom, upper_code, lower_desc, lower_val, lower_uom, lower_code, type_code, local_type, class, mil_code, comm_name, level_, sector, onshore, exclusion, wkhr_code, wkhr_rmk, dst, gmtoffset, cont_agent, city, state, country, adhp_id, us_high, ak_high, ak_low, us_low, us_area, pacific, shape__are, shape__len
                                                 FROM airspaces{self.dataset_suffix} AS1
                                                 WHERE AS1.OBJECTID <= 1000
                                                 ;""")
@@ -617,12 +616,12 @@ class InsertNewPolygons(PostgreSQLBenchmark):
         self.new_tuples = ', '.join([t for t in data_to_insert])
 
     def execute(self):
-        cmd = f"""INSERT INTO airspaces{self.dataset_suffix} (objectid, SHAPE, global_id, ident, icao_id, name, upper_desc, upper_val, upper_uom, upper_code, lower_desc, lower_val, lower_uom, lower_code, type_code, local_type, class, mil_code, comm_name, level_, sector, onshore, exclusion, wkhr_code, wkhr_rmk, dst, gmtoffset, cont_agent, city, state, country, adhp_id, us_high, ak_high, ak_low, us_low, us_area, pacific, shape__are, shape__len)
+        cmd = f"""INSERT INTO airspaces{self.dataset_suffix} (objectid, wkb_geometry, global_id, ident, icao_id, name, upper_desc, upper_val, upper_uom, upper_code, lower_desc, lower_val, lower_uom, lower_code, type_code, local_type, class, mil_code, comm_name, level_, sector, onshore, exclusion, wkhr_code, wkhr_rmk, dst, gmtoffset, cont_agent, city, state, country, adhp_id, us_high, ak_high, ak_low, us_low, us_area, pacific, shape__are, shape__len)
                 VALUES {self.new_tuples}
                 ;"""
         # InsertNewPolygons._logger.info(f"Query: {cmd}")
         self.adapter_p.execute(cmd)
-        self.adapter_p.commit()
+        self.adapter_p.connection.commit()
         return
 
     def cleanup(self):
@@ -631,5 +630,5 @@ class InsertNewPolygons(PostgreSQLBenchmark):
                 ;"""
         InsertNewPolygons._logger.info(f"Query: {cmd}")
         self.adapter_p.execute(cmd)
-        self.adapter_p.commit()
+        self.adapter_p.connection.commit()
         return

@@ -22,16 +22,18 @@ parser.add_argument('--init', dest='init', action='store_const', const=True, def
                     help='Create schemas if necessary and load datasets')
 parser.add_argument('--cleanup', dest='cleanup', action='store_const', const=True, default=False,
                     help='Remove docker containers and volumes')
-parser.add_argument('--no-index', dest='index', action='store_const', const=False, default=True,
-                    help='Do not create spatial index on datasets')
+#parser.add_argument('--no-index', dest='index', action='store_const', const=False, default=True,
+#                    help='Do not create spatial index on datasets')
 parser.add_argument('--no-pcs', dest='pcs', action='store_const', const=False, default=True,
                     help='Do not create spatial index on datasets')
 parser.add_argument('--parallel', dest='parallel', action='store_const', const=True, default=False,
                     help='Execute queries with multiple threads when possible')
-parser.add_argument('--no-mysql', dest='mysql', action='store_const', const=False, default=True,
-                    help='Disable mysql benchmarks')
-parser.add_argument('--no-postgis', dest='postgis', action='store_const', const=False, default=True,
-                    help='Disable postgis benchmarks')
+parser.add_argument('--db', dest='db', action='store', default='both',
+                    help='Select DB (both/mysql/pg)')
+parser.add_argument('--pg-index', dest='pg_index', action='store', default='GIST',
+                    help='Select postgis index (GIST/SPGIST/BRIN/NONE)')
+parser.add_argument('--mysql-noindex', dest='mysql_index', action='store_const', const=False, default=True,
+                    help='Disable MySQL index')
 args = parser.parse_args()
 
 logging.basicConfig(level=logging.INFO)
@@ -48,10 +50,10 @@ def main():
         start_container()
 
     mysql_group_name = f"MySQL{' (No Index)' if not args.index else ''}{ ' (GCS)' if not args.pcs else ''}"
-    postgis_group_name = f"Postgis{' (No Index)' if not args.index else ''}{ ' (GCS)' if not args.pcs else ''}{ ' (Parallel)' if args.parallel else ''}"
+    postgis_group_name = f"Postgis ({args.pg_index}){ ' (GCS)' if not args.pcs else ''}{ ' (Parallel)' if args.parallel else ''}"
 
     join_benchmarks = []
-    if args.mysql:
+    if args.db != 'pg':
         join_benchmarks.extend([
             (mysql_group_name, "PointEqualsPoint",
              mysql_benchmarks.PointEqualsPoint(use_projected_crs=args.pcs)),
@@ -74,7 +76,7 @@ def main():
             (mysql_group_name, "PolygonWithinPolygon",
              mysql_benchmarks.PolygonWithinPolygon(use_projected_crs=args.pcs)),
         ])
-    if args.postgis:
+    if args.db != 'mysql':
         join_benchmarks.extend([
             (postgis_group_name, "PointEqualsPoint",
              postgresql_benchmarks.PointEqualsPoint(use_projected_crs=args.pcs)),
@@ -99,7 +101,7 @@ def main():
         ])
 
     analysis_benchmarks = []
-    if args.mysql:
+    if args.db != 'pg':
         analysis_benchmarks.extend([
             (mysql_group_name, "RetrievePoints",
              mysql_benchmarks.RetrievePoints(use_projected_crs=args.pcs)),
@@ -132,7 +134,7 @@ def main():
             (mysql_group_name, "SingleLineIntersectsPolygon",
              mysql_benchmarks.SingleLineIntersectsPolygon(use_projected_crs=args.pcs)),
         ])
-    if args.postgis:
+    if args.db != 'mysql':
         analysis_benchmarks.extend([
             (postgis_group_name, "RetrievePoints",
              postgresql_benchmarks.RetrievePoints(use_projected_crs=args.pcs)),
@@ -174,6 +176,11 @@ def main():
 
     benchmark_data = dict([(benchmark[0], {}) for benchmark in benchmarks])
     for idx, bnchmrk in enumerate(benchmarks):
+        if args.db != 'both':
+            if args.db == 'mysql' and "MySQL" not in bnchmrk[0]:
+                continue
+            if args.db == 'pg' and "Postgis" not in bnchmrk[0]:
+                continue
         logger.info(f"Starting benchmark {idx+1}")
         bnchmrk[2].run()
         logger.info(f"Benchmark times: {bnchmrk[2].get_time_measurements()}")
@@ -187,8 +194,9 @@ def main():
         output_file = 'join_benchmark'
     elif args.mode == 'analysis':
         output_file = 'analysis_benchmark'
-    if not args.index:
-        output_file += '_no_index'
+    if not args.mysql_index:
+        output_file += '_no_mysql_index'
+    output_file += f"_pg_index_{args.pg_index}"
     if not args.pcs:
         output_file += '_gcs'
     if args.parallel:

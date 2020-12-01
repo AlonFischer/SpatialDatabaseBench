@@ -16,6 +16,12 @@ parser.add_argument('--init', dest='init', action='store_const', const=True, def
                     help='Create schemas if necessary and load datasets')
 parser.add_argument('--cleanup', dest='cleanup', action='store_const', const=True, default=False,
                     help='Remove docker containers and volumes')
+parser.add_argument('--db', dest='db', action='store', default='both',
+                    help='Select DB (both/mysql/pg)')
+parser.add_argument('--pg-index', dest='pg_index', action='store', default='GIST',
+                    help='Select postgis index (GIST/SPGIST/BRIN/NONE)')
+parser.add_argument('--mysql-noindex', dest='mysql_index', action='store_const', const=False, default=True,
+                    help='Disable MySQL index')
 args = parser.parse_args()
 
 logging.basicConfig(level=logging.INFO)
@@ -24,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 def main():
     if args.init:
-        init()
+        init(create_spatial_index=args.mysql_index, postgis_index=args.pg_index)
     else:  
         start_container()
 
@@ -39,6 +45,11 @@ def main():
 
     benchmark_data = dict([(benchmark[0], {}) for benchmark in benchmarks])
     for idx, bnchmrk in enumerate(benchmarks):
+        if args.db != 'both':
+            if args.db == 'mysql' and bnchmrk[0] != "MySQL":
+                continue
+            if args.db == 'pg' and bnchmrk[0] != "Postgis":
+                continue
         logger.info(f"Starting benchmark {idx+1}")
         bnchmrk[2].run()
         logger.info(f"Benchmark times: {bnchmrk[2].get_time_measurements()}")
