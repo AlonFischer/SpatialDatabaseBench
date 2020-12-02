@@ -31,16 +31,19 @@ logger = logging.getLogger(__name__)
 def main():
     if args.init:
         init(create_spatial_index=args.mysql_index, postgis_index=args.pg_index)
-    else:  
+    else:
         start_container()
 
+    mysql_group_name = f"MySQL{' (No Index)' if not args.mysql_index else ''}"
+    postgis_group_name = f"Postgis{' (No Index)' if args.pg_index == 'NONE' else ''}"
+
     benchmarks = [
-        ("MySQL", "Points", mysql_benchmarks.InsertNewPoints()),
-        ("Postgis", "Points", postgresql_benchmarks.InsertNewPoints()),
-        ("MySQL", "Lines", mysql_benchmarks.InsertNewLines()),
-        ("Postgis", "Lines", postgresql_benchmarks.InsertNewLines()),
-        ("MySQL", "Polygons", mysql_benchmarks.InsertNewPolygons()),
-        ("Postgis", "Polygons", postgresql_benchmarks.InsertNewPolygons()),
+        (mysql_group_name, "Points", mysql_benchmarks.InsertNewPoints()),
+        (postgis_group_name, "Points", postgresql_benchmarks.InsertNewPoints()),
+        (mysql_group_name, "Lines", mysql_benchmarks.InsertNewLines()),
+        (postgis_group_name, "Lines", postgresql_benchmarks.InsertNewLines()),
+        (mysql_group_name, "Polygons", mysql_benchmarks.InsertNewPolygons()),
+        (postgis_group_name, "Polygons", postgresql_benchmarks.InsertNewPolygons()),
     ]
 
     benchmark_data = dict([(benchmark[0], {}) for benchmark in benchmarks])
@@ -57,11 +60,12 @@ def main():
         benchmark_data[bnchmrk[0]][bnchmrk[1]] = bnchmrk[2].get_average_time()
 
     # Save raw benchmark data to file
-    with open('results/data_insertion_benchmark.json', 'w') as file:
+    output_file = "data_insertion_benchmark"
+    if not args.mysql_index:
+        output_file += '_no_mysql_index'
+    output_file += f"_pg_index_{args.pg_index}"
+    with open(f"results/{output_file}.json", 'w') as file:
         file.write(json.dumps(benchmark_data, indent=4))
-
-    create_bar_chart(benchmark_data, "Time to Run Query",
-                     "Seconds", "figures/data_insertion_benchmark.png")
 
     if args.cleanup:
         cleanup()

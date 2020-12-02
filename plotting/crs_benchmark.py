@@ -14,8 +14,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     output_file = f"{args.mode}_crs_benchmark"
-    data_files = [f"{args.mode}_benchmark.json",
-                  f"{args.mode}_benchmark_gcs.json"]
+    data_files = [f"{args.mode}_benchmark_pg_index_GIST.json",
+                  f"{args.mode}_benchmark_pg_index_GIST_gcs.json"]
 
     benchmark_data = {}
     for data_file in data_files:
@@ -25,4 +25,4 @@ if __name__ == "__main__":
     logger.info(benchmark_data)
 
     create_bar_chart(benchmark_data, "Time to Run Query With PCS and GCS",
-                     "Seconds", f"figures/{output_file}.png", yscale='log')
+                     "Seconds", f"figures/{output_file}.png", yscale='log', fig_size=(15, 5))

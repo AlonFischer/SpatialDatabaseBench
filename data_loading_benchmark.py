@@ -63,27 +63,39 @@ def main():
         "CREATE EXTENSION IF NOT EXISTS postgis_sfcgal;"))
 
     benchmarks = [
-        ("MySQL", "Airspace (Index)", mysql_benchmarks.LoadAirspaces()),
-        ("MySQL", "Airspace (No Index)",
+        ("MySQL (Index)", "Airspace", mysql_benchmarks.LoadAirspaces()),
+        ("MySQL (No Index)", "Airspace",
          mysql_benchmarks.LoadAirspaces(with_index=False)),
-        ("MySQL", "Airports (Index)", mysql_benchmarks.LoadAirports()),
-        ("MySQL", "Airports (No Index)",
+        ("MySQL (Index)", "Airports", mysql_benchmarks.LoadAirports()),
+        ("MySQL (No Index)", "Airports",
          mysql_benchmarks.LoadAirports(with_index=False)),
-        ("MySQL", "Routes (Index)", mysql_benchmarks.LoadRoutes()),
-        ("MySQL", "Routes (No Index)", mysql_benchmarks.LoadRoutes(with_index=False)),
+        ("MySQL (Index)", "Routes", mysql_benchmarks.LoadRoutes()),
+        ("MySQL (No Index)", "Routes", mysql_benchmarks.LoadRoutes(with_index=False)),
         # Add benchmarks for postgres without index
-        ("Postgis", "Airspace (GIST Index)", postgresql_benchmarks.LoadAirspaces(with_index="GIST")),
-        ("Postgis", "Airspace (SPGIST Index)", postgresql_benchmarks.LoadAirspaces(with_index="SPGIST")),
-        ("Postgis", "Airspace (BRIN Index)", postgresql_benchmarks.LoadAirspaces(with_index="BRIN")),
-        ("Postgis", "Airspace (No index)", postgresql_benchmarks.LoadAirspaces(with_index="NONE")),
-        ("Postgis", "Airports (GIST Index)", postgresql_benchmarks.LoadAirports(with_index="GIST")),
-        ("Postgis", "Airports (SPGIST Index)", postgresql_benchmarks.LoadAirports(with_index="SPGIST")),
-        ("Postgis", "Airports (BRIN Index)", postgresql_benchmarks.LoadAirports(with_index="BRIN")),
-        ("Postgis", "Airports (No index)", postgresql_benchmarks.LoadAirports(with_index="NONE")),
-        ("Postgis", "Routes (GIST Index)", postgresql_benchmarks.LoadRoutes(with_index="GIST")),
-        ("Postgis", "Routes (SPGIST Index)", postgresql_benchmarks.LoadRoutes(with_index="SPGIST")),
-        ("Postgis", "Routes (BRIN Index)", postgresql_benchmarks.LoadRoutes(with_index="BRIN")),
-        ("Postgis", "Routes (No index)", postgresql_benchmarks.LoadRoutes(with_index="NONE")),
+        ("Postgis (GIST Index)", "Airspace",
+         postgresql_benchmarks.LoadAirspaces(with_index="GIST")),
+        ("Postgis (SPGIST Index)", "Airspace",
+         postgresql_benchmarks.LoadAirspaces(with_index="SPGIST")),
+        ("Postgis (BRIN Index)", "Airspace",
+         postgresql_benchmarks.LoadAirspaces(with_index="BRIN")),
+        ("Postgis (No Index)", "Airspace",
+         postgresql_benchmarks.LoadAirspaces(with_index="NONE")),
+        ("Postgis (GIST Index)", "Airports",
+         postgresql_benchmarks.LoadAirports(with_index="GIST")),
+        ("Postgis (SPGIST Index)", "Airports",
+         postgresql_benchmarks.LoadAirports(with_index="SPGIST")),
+        ("Postgis (BRIN Index)", "Airports",
+         postgresql_benchmarks.LoadAirports(with_index="BRIN")),
+        ("Postgis (No Index)", "Airports",
+         postgresql_benchmarks.LoadAirports(with_index="NONE")),
+        ("Postgis (GIST Index)", "Routes",
+         postgresql_benchmarks.LoadRoutes(with_index="GIST")),
+        ("Postgis (SPGIST Index)", "Routes",
+         postgresql_benchmarks.LoadRoutes(with_index="SPGIST")),
+        ("Postgis (BRIN Index)", "Routes",
+         postgresql_benchmarks.LoadRoutes(with_index="BRIN")),
+        ("Postgis (No Index)", "Routes",
+         postgresql_benchmarks.LoadRoutes(with_index="NONE")),
     ]
 
     benchmark_data = dict([(benchmark[0], {}) for benchmark in benchmarks])
@@ -104,7 +116,7 @@ def main():
         file.write(json.dumps(benchmark_data, indent=4))
 
     create_bar_chart(benchmark_data, "Time to Load Dataset",
-                     "Seconds", "figures/data_loading_benchmark.png")
+                     "Seconds", "figures/data_loading_benchmark.png", yscale='log')
 
     if args.cleanup:
         cleanup()

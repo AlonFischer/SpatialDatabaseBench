@@ -74,7 +74,7 @@ if __name__ == "__main__":
                         help='Constrains which benchmarks are run')
     args = parser.parse_args()
 
-    output_file = f"subsampling_{args.mode}_benchmark"
+    output_file = f"subsampling_{args.mode}_benchmark_pg_index_GIST"
     benchmark_data = {}
     with open(f"results/{output_file}.json", 'r') as file:
         benchmark_data = json.loads(file.read(),

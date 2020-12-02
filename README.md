@@ -58,28 +58,37 @@
 ## Benchmarks
 
 * Data Loading Benchmark: measures the time to load each dataset with and without a spatial index in MySQL and PostGIS
-  1. Run `python3 data_loading_benchmark.py --init --cleanup`. Creates an image figures/data_loading_benchmark.png with the results.
+  1. Run `python3 data_loading_benchmark.py --cleanup`. Creates an image figures/data_loading_benchmark.png with the results.
 * Spatial Join & Analysis Benchmark: measures the time to perform spatial join or analysis queries in MySQL and PostGIS
   1. Run `python3 spatial_join_analysis_benchmark.py <join/analysis> --init --cleanup --pg-index {Optimal pg index here}`. Creates an image figures/<join/analysis>_benchmark.png with the results.
 * Data Insertion Benchmark: measures the time to insert new data into the tables representing each dataset in MySQL and PostGIS
-  1. Run `python3 data_insertion_benchmark.py --init --cleanup`. Creates an image figures/data_insertion_benchmark.png with the results.
+  1. Run `python3 data_insertion_benchmark.py --init --cleanup`.
+  2. Run `python3 data_insertion_benchmark.py --init --cleanup --mysql-noindex --pg-index NONE`.
+  3. Run `python3 plotting/data_insertion_benchmark.py`. Creates an image figures/data_insertion_benchmark.png with the results.
 * Storage Size Benchmark: Measures the disk space used by each dataset.
   1. Run `python3 storage_size_benchmark.py --init --cleanup`. Create an image figures/storage_size_benchmark.png with the results.
 * Index Benchmark: measures the time to perform spatial join or analysis queries in MySQL and PostGIS. Note: Running this benchmark on the spatial join queries will take a very long time and is not recommended.
-  1. Run `python3 spatial_join_analysis_benchmark.py <join/analysis> --init --cleanup --db pg --pg-index {each pg index options}` as in the spatial join & analysis benchmark for Postgis cases
-  2. Run `python3 spatial_join_analysis_benchmark.py <join/analysis> --init --cleanup --db mysql` as in the spatial join & analysis benchmark for MySQL cases
-  3. Run `python3 spatial_join_analysis_benchmark.py <join/analysis>  --init --cleanup --db mysql --mysql-no-index` to run the same benchmark on MySQL without spatial indexes on the datasets.
-  4. Run `python3 plotting/index_benchmark.py` to plot the results together. Creates an image figures/index_benchmark.png with the results.
+  1. Run `python3 spatial_join_analysis_benchmark.py analysis --init --cleanup --pg-index GIST`
+  2. Run `python3 spatial_join_analysis_benchmark.py analysis --init --cleanup --mysql-noindex --pg-index NONE`
+  3. Run `python3 spatial_join_analysis_benchmark.py analysis --init --cleanup --db pg --pg-index SPGIST`
+  4. Run `python3 spatial_join_analysis_benchmark.py analysis --init --cleanup --db pg --pg-index BRIN`
+  5. Run `python3 spatial_join_analysis_benchmark.py join --init --cleanup --pg-index GIST`
+  6. Run `python3 spatial_join_analysis_benchmark.py join --init --cleanup --db pg --pg-index SPGIST`
+  7. Run `python3 plotting/index_benchmark.py <join/analysis>` to plot the results together. Creates an image figures/index_benchmark.png with the results.
 * GCS Benchmark: measures the time to perform spatial join or analysis queries in MySQL and PostGIS. Note: Running this benchmark on the spatial join queries will take a very long time and is not recommended.
   1. Run `python3 spatial_join_analysis_benchmark.py <join/analysis> --init --cleanup --pg-index {Optimal pg index here}` as in the spatial join & analysis benchmark.
-  2. Run `python3 spatial_join_analysis_benchmark.py <join/analysis>  --init --cleanup --no-pcs --pg-index {Optimal pg index here}` to run the same benchmark without spatial indexes on the datasets. Creates an image figures/<join/analysis>_benchmark_gcs.png with the results.
-  3. Run `python3 plotting/crs_benchmark.py` to plot the results together. Creates an image figures/crs_benchmark.png with the results.
+  2. Run `python3 spatial_join_analysis_benchmark.py <join/analysis> --init --cleanup --no-pcs --pg-index {Optimal pg index here}` to run the same benchmark without spatial indexes on the datasets. Creates an image figures/<join/analysis>_benchmark_gcs.png with the results.
+  3. Run `python3 plotting/crs_benchmark.py <join/analysis>` to plot the results together. Creates an image figures/crs_benchmark.png with the results.
 * Subsampling Benchmark: measures the time to perform a subset of the spatial join or analysis queries on several subsets of the datasets.
-  1. Run `python3 subsampling_benchmark.py <join/analysis> --pg-index {Optimal pg index here}`. Creates an image figures/subsampling_<join/analysis>_benchmark.png with the results.
+  1. Run `python3 subsampling_benchmark.py <join/analysis> --init --cleanup --pg-index {Optimal pg index here}`. Creates an image figures/subsampling_<join/analysis>_benchmark.png with the results.
 * Parallel Execution Benchmark: measures the time to perform spatial join or analysis queries in MySQL, single-threaded PostGIS, and multi-threaded PostGIS.
   1. Run `python3 spatial_join_analysis_benchmark.py <join/analysis> --init --cleanup --pg-index {Optimal pg index here}` as in the spatial join & analysis benchmark.
-  2. Run `python3 spatial_join_analysis_benchmark.py <join/analysis>  --init --cleanup --no-mysql --parallel --pg-index {Optimal pg index here}` to run the same benchmark with only PostGIS and parallel query execution enabled.
+  2. Run `python3 spatial_join_analysis_benchmark.py <join/analysis> --init --cleanup --db postgis --parallel --pg-index {Optimal pg index here}` to run the same benchmark with only PostGIS and parallel query execution enabled.
   3. Run `python3 plotting/parallel_execution_benchmark.py <join/analysis>` to plot the results together. Creates an image figures/<join/analysis>_parallel_execution.png with the results.
+
+## Code Attributions
+
+The structure of the benchmarks classes came from <https://github.com/stcarrez/sql-benchmark>. We used it as a starting point but modified it heavily.
 
 ## Troubleshooting
 

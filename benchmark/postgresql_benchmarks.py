@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-"""
-PostgreSQL Benchmark tests
-"""
-__author__ = "Stephane Carrez"
-__copyright__ = "Copyright (C) 2018 Stephane Carrez"
-__license__ = 'Apache License, Version 2.0'
-
 import psycopg2
 import docker
 from benchmark.postgresql_benchmark import PostgreSQLBenchmark
@@ -16,17 +8,21 @@ from util.coordinate_transform import transform_4326_to_3857
 from util.create_geometry import create_polygon, create_point, create_linestring
 from util.misc import convert_decimals_to_ints_in_tuples, convert_none_to_null_in_tuples, tuple_to_str
 
+"""
+PostgreSQL Benchmark tests
+"""
+
 DATABASE_NAME = "spatialdatasets"
-GEORGIA_BOUNDING_BOX = [(30.3575, -85.6082), (34.9996, -85.6082),
-                        (34.9996, -80.696), (30.3575, -80.696), (30.3575, -85.6082)]
+GEORGIA_BOUNDING_BOX = [(-85.6082, 30.3575), (-85.6082, 34.9996),
+                        (-80.696, 34.9996), (-80.696, 30.3575), (-85.6082, 30.3575)]
 GEORGIA_BB_4326 = create_polygon(GEORGIA_BOUNDING_BOX)
 GEORGIA_BB_3857 = create_polygon(
     [transform_4326_to_3857(point) for point in GEORGIA_BOUNDING_BOX])
-ATLANTA_COORDS = (33.7483, -84.3911)
+ATLANTA_COORDS = (-84.3911, 33.7483)
 ATLANTA_LOC_4326 = create_point(ATLANTA_COORDS)
 ATLANTA_LOC_3857 = create_point(transform_4326_to_3857(ATLANTA_COORDS))
-SAMPLE_ROUTE = [(33.6290830738968, -84.4350692100728),
-                (36.1369671135132, -86.6847761162769)]
+SAMPLE_ROUTE = [(-84.4350692100728, 33.6290830738968, ),
+                (-86.6847761162769, 36.1369671135132)]
 ROUTE_4326 = create_linestring(SAMPLE_ROUTE)
 ROUTE_3857 = create_linestring(
     [transform_4326_to_3857(point) for point in SAMPLE_ROUTE])
@@ -37,7 +33,7 @@ class PGLoaderBenchmark(PostgreSQLBenchmark):
     _title = None
     _table_name = None
 
-    def __init__(self, with_index=True):
+    def __init__(self, with_index="GIST"):
         super().__init__(self._title, 2)
         docker_client = docker.from_env()
         self.gdal_docker_wrapper = GdalDockerWrapper(docker_client)
@@ -62,7 +58,7 @@ class LoadAirspaces(PGLoaderBenchmark):
 
     def execute(self):
         self.gdal_docker_wrapper.import_to_postgis(
-            "airspace/Class_Airspace.shp", self._table_name)
+            "airspace/Class_Airspace.shp", self._table_name, create_spatial_index=self.with_index)
         LoadAirspaces._logger.info("Load done")
 
 
@@ -73,7 +69,7 @@ class LoadAirports(PGLoaderBenchmark):
 
     def execute(self):
         self.gdal_docker_wrapper.import_to_postgis(
-            "airports/Airports.shp", self._table_name)
+            "airports/Airports.shp", self._table_name, create_spatial_index=self.with_index)
         LoadAirports._logger.info("Load done")
 
 
@@ -84,7 +80,7 @@ class LoadRoutes(PGLoaderBenchmark):
 
     def execute(self):
         self.gdal_docker_wrapper.import_to_postgis(
-            "routes/ATS_Route.shp", self._table_name)
+            "routes/ATS_Route.shp", self._table_name, create_spatial_index=self.with_index)
         LoadRoutes._logger.info("Load done")
 
 
@@ -333,21 +329,23 @@ class PgBoxedBenchmark(PostgreSQLBenchmark):
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(self._title, repeat_count=3)
         self.dataset_suffix = ""
+        self.text_to_shape_function = "ST_GeogFromText"
         if use_projected_crs:
             self.dataset_suffix = "_3857"
+            self.text_to_shape_function = "ST_GeomFromText"
         self.subsampling_condition = ""
         if subsampling_factor > 1:
             for name in self._object_names:
                 self.subsampling_condition += f"MOD({name}.OBJECTID, {subsampling_factor}) = 0 AND "
         self.bounding_box = f"{GEORGIA_BB_3857}, 3857"
         if not use_projected_crs:
-            self.bounding_box = f"{GEORGIA_BB_4326}, 4326"
+            self.bounding_box = f"{GEORGIA_BB_4326}"
         self.location = f"{ATLANTA_LOC_3857}, 3857"
         if not use_projected_crs:
-            self.location = f"{ATLANTA_LOC_4326}, 4326"
+            self.location = f"{ATLANTA_LOC_4326}"
         self.line = f"{ROUTE_3857}, 3857"
         if not use_projected_crs:
-            self.line = f"{ROUTE_4326}, 4326"
+            self.line = f"{ROUTE_4326}"
 
     def execute(self):
         raise NotImplementedError
@@ -361,7 +359,7 @@ class RetrievePoints(PgBoxedBenchmark):
     def execute(self):
         cmd = f"""SELECT A.OBJECTID
                 FROM airports{self.dataset_suffix} A
-                WHERE {self.subsampling_condition} st_within(A.wkb_geometry, ST_GeomFromText({self.bounding_box}))
+                WHERE {self.subsampling_condition} st_within(A.wkb_geometry, {self.text_to_shape_function}({self.bounding_box}))
                 ;"""
         RetrievePoints._logger.info(f"Query: {cmd}")
         return self.adapter_np.execute(cmd)
@@ -375,7 +373,7 @@ class RetrieveLines(PgBoxedBenchmark):
     def execute(self):
         cmd = f"""SELECT R.OBJECTID
                 FROM routes{self.dataset_suffix} R
-                WHERE {self.subsampling_condition} st_within(R.wkb_geometry, ST_GeomFromText({self.bounding_box}))
+                WHERE {self.subsampling_condition} st_within(R.wkb_geometry, {self.text_to_shape_function}({self.bounding_box}))
                 ;"""
         RetrieveLines._logger.info(f"Query: {cmd}")
         return self.adapter_np.execute(cmd)
@@ -389,7 +387,7 @@ class RetrievePolygons(PgBoxedBenchmark):
     def execute(self):
         cmd = f"""SELECT AS1.OBJECTID
                 FROM airspaces{self.dataset_suffix} AS1
-                WHERE {self.subsampling_condition} st_within(AS1.wkb_geometry, ST_GeomFromText({self.bounding_box}))
+                WHERE {self.subsampling_condition} st_within(AS1.wkb_geometry, {self.text_to_shape_function}({self.bounding_box}))
                 ;"""
         RetrievePolygons._logger.info(f"Query: {cmd}")
         return self.adapter_np.execute(cmd)
@@ -403,7 +401,7 @@ class PointNearPoint(PgBoxedBenchmark):
     def execute(self):
         cmd = f"""SELECT A.OBJECTID
                 FROM airports{self.dataset_suffix} A
-                WHERE {self.subsampling_condition} st_distance(A.wkb_geometry, ST_GeomFromText({self.location})) < 50000
+                WHERE {self.subsampling_condition} st_distance(A.wkb_geometry, {self.text_to_shape_function}({self.location})) < 50000
                 ;"""
         PointNearPoint._logger.info(f"Query: {cmd}")
         return self.adapter_np.execute(cmd)
@@ -415,7 +413,7 @@ class PointNearPoint2(PgBoxedBenchmark):
     _object_names = ["A"]
 
     def execute(self):
-        cmd = f"""SELECT A.OBJECTID, st_distance(A.wkb_geometry, ST_GeomFromText({self.location})) AS dist
+        cmd = f"""SELECT A.OBJECTID, st_distance(A.wkb_geometry, {self.text_to_shape_function}({self.location})) AS dist
                 FROM airports{self.dataset_suffix} A
                 {self.subsampling_condition}
                 ORDER BY dist
@@ -433,7 +431,7 @@ class PointNearLine(PgBoxedBenchmark):
     def execute(self):
         cmd = f"""SELECT R.OBJECTID
                 FROM routes{self.dataset_suffix} R
-                WHERE {self.subsampling_condition} st_distance(R.wkb_geometry, ST_GeomFromText({self.location})) < 500000
+                WHERE {self.subsampling_condition} st_distance(R.wkb_geometry, {self.text_to_shape_function}({self.location})) < 500000
                 ;"""
         PointNearLine._logger.info(f"Query: {cmd}")
         return self.adapter_np.execute(cmd)
@@ -445,7 +443,7 @@ class PointNearLine2(PgBoxedBenchmark):
     _object_names = ["R"]
 
     def execute(self):
-        cmd = f"""SELECT R.OBJECTID, st_distance(R.wkb_geometry, ST_GeomFromText({self.location})) AS dist
+        cmd = f"""SELECT R.OBJECTID, st_distance(R.wkb_geometry, {self.text_to_shape_function}({self.location})) AS dist
                 FROM routes{self.dataset_suffix} R
                 {self.subsampling_condition}
                 ORDER BY dist
@@ -463,7 +461,7 @@ class PointNearPolygon(PgBoxedBenchmark):
     def execute(self):
         cmd = f"""SELECT AS1.OBJECTID
                 FROM airspaces{self.dataset_suffix} AS1
-                WHERE {self.subsampling_condition} st_distance(AS1.wkb_geometry, ST_GeomFromText({self.location})) < 500000
+                WHERE {self.subsampling_condition} st_distance(AS1.wkb_geometry, {self.text_to_shape_function}({self.location})) < 500000
                 ;"""
         PointNearPolygon._logger.info(f"Query: {cmd}")
         return self.adapter_np.execute(cmd)
@@ -477,7 +475,7 @@ class SinglePointWithinPolygon(PgBoxedBenchmark):
     def execute(self):
         cmd = f"""SELECT AS1.OBJECTID
                 FROM airspaces{self.dataset_suffix} AS1
-                WHERE {self.subsampling_condition} st_contains(AS1.wkb_geometry, ST_GeomFromText({self.location}))
+                WHERE {self.subsampling_condition} st_contains(AS1.wkb_geometry, {self.text_to_shape_function}({self.location}))
                 ;"""
         SinglePointWithinPolygon._logger.info(f"Query: {cmd}")
         return self.adapter_np.execute(cmd)
@@ -491,7 +489,7 @@ class LineNearPolygon(PgBoxedBenchmark):
     def execute(self):
         cmd = f"""SELECT AS1.OBJECTID
                 FROM airspaces{self.dataset_suffix} AS1
-                WHERE {self.subsampling_condition} st_distance(AS1.wkb_geometry, ST_GeomFromText({self.line})) < 500000
+                WHERE {self.subsampling_condition} st_distance(AS1.wkb_geometry, {self.text_to_shape_function}({self.line})) < 500000
                 ;"""
         LineNearPolygon._logger.info(f"Query: {cmd}")
         return self.adapter_np.execute(cmd)
@@ -505,7 +503,7 @@ class SingleLineIntersectsPolygon(PgBoxedBenchmark):
     def execute(self):
         cmd = f"""SELECT AS1.OBJECTID
                 FROM airspaces{self.dataset_suffix} AS1
-                WHERE {self.subsampling_condition} st_intersects(AS1.wkb_geometry, ST_GeomFromText({self.line}))
+                WHERE {self.subsampling_condition} st_intersects(AS1.wkb_geometry, {self.text_to_shape_function}({self.line}))
                 ;"""
         SingleLineIntersectsPolygon._logger.info(f"Query: {cmd}")
         return self.adapter_np.execute(cmd)

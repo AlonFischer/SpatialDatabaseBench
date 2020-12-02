@@ -14,7 +14,7 @@ class PostgisDockerWrapper:
         self.root_password = "root-password"
         self.container = None
         self.volume_name = "postgisdata"
-        self.postgis_data_folder = "/var/lib/postgresql"
+        self.postgis_data_folder = "/var/lib/postgresql/data"
         self.volume = None
 
         try:

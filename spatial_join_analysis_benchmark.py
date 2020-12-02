@@ -2,8 +2,8 @@ import logging
 import time
 import json
 import argparse
-from benchmark import mysql_benchmarks
-from benchmark import postgresql_benchmarks
+from benchmark import mysql_benchmarks, postgresql_benchmarks
+from benchmark.benchmark_exception import BenchmarkException
 from mysqlutils.mysqldockerwrapper import MySqlDockerWrapper
 from mysqlutils.mysqladapter import MySQLAdapter
 from gdal.gdaldockerwrapper import GdalDockerWrapper
@@ -22,7 +22,7 @@ parser.add_argument('--init', dest='init', action='store_const', const=True, def
                     help='Create schemas if necessary and load datasets')
 parser.add_argument('--cleanup', dest='cleanup', action='store_const', const=True, default=False,
                     help='Remove docker containers and volumes')
-#parser.add_argument('--no-index', dest='index', action='store_const', const=False, default=True,
+# parser.add_argument('--no-index', dest='index', action='store_const', const=False, default=True,
 #                    help='Do not create spatial index on datasets')
 parser.add_argument('--no-pcs', dest='pcs', action='store_const', const=False, default=True,
                     help='Do not create spatial index on datasets')
@@ -43,14 +43,15 @@ logger = logging.getLogger(__name__)
 def main():
     if args.init:
         logger.info("Initing DB")
-        init(create_spatial_index=args.index, import_gcs=not args.pcs,
-             parallel_query_execution=args.parallel)
+        init(create_spatial_index=args.mysql_index, import_gcs=not args.pcs,
+             postgis_index=args.pg_index, parallel_query_execution=args.parallel)
     else:
         logger.info("Reusing existing DB")
         start_container()
 
-    mysql_group_name = f"MySQL{' (No Index)' if not args.index else ''}{ ' (GCS)' if not args.pcs else ''}"
-    postgis_group_name = f"Postgis ({args.pg_index}){ ' (GCS)' if not args.pcs else ''}{ ' (Parallel)' if args.parallel else ''}"
+    mysql_group_name = f"MySQL{' (No Index)' if not args.mysql_index else ''}{ ' (GCS)' if not args.pcs else ''}"
+    pg_index_name = 'No' if args.pg_index == 'NONE' else args.pg_index
+    postgis_group_name = f"Postgis ({pg_index_name} Index){ ' (GCS)' if not args.pcs else ''}{ ' (Parallel)' if args.parallel else ''}"
 
     join_benchmarks = []
     if args.db != 'pg':
@@ -182,11 +183,18 @@ def main():
             if args.db == 'pg' and "Postgis" not in bnchmrk[0]:
                 continue
         logger.info(f"Starting benchmark {idx+1}")
-        bnchmrk[2].run()
-        logger.info(f"Benchmark times: {bnchmrk[2].get_time_measurements()}")
-        logger.info(f"Benchmark average time: {bnchmrk[2].get_average_time()}")
-        benchmark_data[bnchmrk[0]][bnchmrk[1]] = bnchmrk[2].get_average_time()
-        logger.info(f"Result Count: {len(bnchmrk[2].get_results())}")
+        try:
+            bnchmrk[2].run()
+            logger.info(
+                f"Benchmark times: {bnchmrk[2].get_time_measurements()}")
+            logger.info(
+                f"Benchmark average time: {bnchmrk[2].get_average_time()}")
+            benchmark_data[bnchmrk[0]][bnchmrk[1]
+                                       ] = bnchmrk[2].get_average_time()
+            logger.info(f"Result Count: {len(bnchmrk[2].get_results())}")
+        except BenchmarkException as e:
+            logger.warning(f"Benchmark Exception: {str(e)}")
+            benchmark_data[bnchmrk[0]][bnchmrk[1]] = 0
 
     # Save raw benchmark data to file
     output_file = ""

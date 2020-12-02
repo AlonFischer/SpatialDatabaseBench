@@ -46,7 +46,7 @@ class GdalDockerWrapper:
             -f 'ESRI Shapefile' {self.gdal_data_folder}/{dest}
             {self.gdal_data_folder}/{source}
             -overwrite
-            -t_srs {srs}""" #  ESRI:102009
+            -t_srs {srs}"""  # ESRI:102009
         GdalDockerWrapper._logger.info(cmd)
         return self.run_command(cmd)
 
@@ -65,12 +65,12 @@ class GdalDockerWrapper:
         GdalDockerWrapper._logger.info(cmd)
         return self.run_command(cmd)
 
-    def import_to_postgis(self, source, table_name, 
-        create_spatial_index="GIST", 
-        schema_name="spatialdatasets", 
-        host="127.0.0.1", port=5432, user="postgres", password="root-password",
-        gcs_type = "geometry"
-    ):
+    def import_to_postgis(self, source, table_name,
+                          create_spatial_index="GIST",
+                          schema_name="spatialdatasets",
+                          host="127.0.0.1", port=5432, user="postgres", password="root-password",
+                          gcs_type="geometry"
+                          ):
         """ source should be relative to the datasets folder
         """
         # create_spatial_index = {"NONE", "GIST" (default), "SPGIST", "BRIN"}
@@ -86,6 +86,8 @@ class GdalDockerWrapper:
             -overwrite
             -lco FID=OBJECTID
             -lco SPATIAL_INDEX={create_spatial_index}
-            -lco GEOM_TYPE={gcs_type}"""
+            -lco GEOM_TYPE={gcs_type}
+            -lco GEOMETRY_NAME=wkb_geometry
+            -lco DIM=2"""
         GdalDockerWrapper._logger.info(cmd)
         return self.run_command(cmd)
