@@ -34,7 +34,7 @@ class PGLoaderBenchmark(PostgreSQLBenchmark):
     _table_name = None
 
     def __init__(self, with_index="GIST"):
-        super().__init__(self._title, 2)
+        super().__init__(self._title, repeat_count=7)
         docker_client = docker.from_env()
         self.gdal_docker_wrapper = GdalDockerWrapper(docker_client)
         self.with_index = with_index
@@ -92,7 +92,7 @@ class PgSubsampledBenchmark(PostgreSQLBenchmark):
     _object_names = []
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
-        super().__init__(self._title, repeat_count=3)
+        super().__init__(self._title, repeat_count=7)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -253,7 +253,7 @@ class PgSubsampledAggregateBenchmark(PostgreSQLBenchmark):
     _object_names = []
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
-        super().__init__(self._title, repeat_count=3)
+        super().__init__(self._title, repeat_count=7)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -327,7 +327,7 @@ class PgBoxedBenchmark(PostgreSQLBenchmark):
     _object_names = []
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
-        super().__init__(self._title, repeat_count=3)
+        super().__init__(self._title, repeat_count=7)
         self.dataset_suffix = ""
         self.text_to_shape_function = "ST_GeogFromText"
         if use_projected_crs:
@@ -514,7 +514,7 @@ class InsertNewPoints(PostgreSQLBenchmark):
     _title = "Insert New Points"
 
     def __init__(self, use_projected_crs=True):
-        super().__init__(self._title, repeat_count=3)
+        super().__init__(self._title, repeat_count=7)
         self.dataset_suffix = ""
         srid = 4326
         if use_projected_crs:
@@ -555,7 +555,7 @@ class InsertNewLines(PostgreSQLBenchmark):
     _title = "Insert New Lines"
 
     def __init__(self, use_projected_crs=True):
-        super().__init__(self._title, repeat_count=3)
+        super().__init__(self._title, repeat_count=7)
         self.dataset_suffix = ""
         srid = 4326
         if use_projected_crs:
@@ -596,7 +596,7 @@ class InsertNewPolygons(PostgreSQLBenchmark):
     _title = "Insert New Polygons"
 
     def __init__(self, use_projected_crs=True):
-        super().__init__(self._title, repeat_count=3)
+        super().__init__(self._title, repeat_count=7)
         self.dataset_suffix = ""
         srid = 4326
         if use_projected_crs:
@@ -630,3 +630,50 @@ class InsertNewPolygons(PostgreSQLBenchmark):
         self.adapter_p.execute(cmd)
         self.adapter_p.connection.commit()
         return
+
+
+class StorageSizeBenchmark(PostgreSQLBenchmark):
+    _logger = logging.getLogger(__name__)
+    _title = "Base class"
+
+    def __init__(self, use_projected_crs=True, subsampling_factor=1):
+        super().__init__(self._title, repeat_count=1)
+        self.dataset_suffix = ""
+        if use_projected_crs:
+            self.dataset_suffix = "_3857"
+
+    def execute(self):
+        raise NotImplementedError
+
+
+class AirspacesSize(StorageSizeBenchmark):
+    _logger = logging.getLogger(__name__)
+    _title = "Airspaces Size"
+
+    def execute(self):
+        cmd = f"""SELECT (pg_total_relation_size('airspaces{self.dataset_suffix}'))/power(1024,2) tablesize_mb
+                ;"""
+        AirspacesSize._logger.info(cmd)
+        return self.adapter_np.execute(cmd)
+
+
+class AirportsSize(StorageSizeBenchmark):
+    _logger = logging.getLogger(__name__)
+    _title = "Airspaces Size"
+
+    def execute(self):
+        cmd = f"""SELECT (pg_total_relation_size('airports{self.dataset_suffix}'))/power(1024,2) tablesize_mb
+                ;"""
+        AirspacesSize._logger.info(cmd)
+        return self.adapter_np.execute(cmd)
+
+
+class RoutesSize(StorageSizeBenchmark):
+    _logger = logging.getLogger(__name__)
+    _title = "Airspaces Size"
+
+    def execute(self):
+        cmd = f"""SELECT (pg_total_relation_size('routes{self.dataset_suffix}'))/power(1024,2) tablesize_mb
+                ;"""
+        AirspacesSize._logger.info(cmd)
+        return self.adapter_np.execute(cmd)

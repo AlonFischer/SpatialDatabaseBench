@@ -13,7 +13,7 @@ class PostgreSQLBenchmark(Benchmark):
     adapter_np = None
     adapter_p = None
 
-    def __init__(self, title, repeat_count=3):
+    def __init__(self, title, repeat_count=7):
         super().__init__(title, repeat_count=repeat_count)
         self.adapter_np = PostgisAdapter(
             "postgres", "root-password", dbname=self._database, persist=False)

@@ -96,7 +96,7 @@ class PointEqualsPoint(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         PointEqualsPoint._title, repeat_count=3)
+                         PointEqualsPoint._title, repeat_count=7)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -119,7 +119,7 @@ class PointIntersectsLine(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         PointIntersectsLine._title, repeat_count=3)
+                         PointIntersectsLine._title, repeat_count=7)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -142,7 +142,7 @@ class PointWithinPolygon(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         PointWithinPolygon._title, repeat_count=3)
+                         PointWithinPolygon._title, repeat_count=7)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -165,7 +165,7 @@ class LineIntersectsPolygon(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         LineIntersectsPolygon._title, repeat_count=3)
+                         LineIntersectsPolygon._title, repeat_count=7)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -188,7 +188,7 @@ class LineWithinPolygon(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         LineWithinPolygon._title, repeat_count=3)
+                         LineWithinPolygon._title, repeat_count=7)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -210,7 +210,7 @@ class LineIntersectsLine(MysqlBenchmark):
     _title = "Line Intersects Line"
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
-        super().__init__(create_mysql_adapter(), LineIntersectsLine._title, repeat_count=3)
+        super().__init__(create_mysql_adapter(), LineIntersectsLine._title, repeat_count=7)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -232,7 +232,7 @@ class PolygonEqualsPolygon(MysqlBenchmark):
     _title = "Polygon Equals Polygon"
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
-        super().__init__(create_mysql_adapter(), PolygonEqualsPolygon._title, repeat_count=3)
+        super().__init__(create_mysql_adapter(), PolygonEqualsPolygon._title, repeat_count=7)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -255,7 +255,7 @@ class PolygonDisjointPolygon(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         PolygonDisjointPolygon._title, repeat_count=3)
+                         PolygonDisjointPolygon._title, repeat_count=7)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -278,7 +278,7 @@ class PolygonIntersectsPolygon(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         PolygonIntersectsPolygon._title, repeat_count=3)
+                         PolygonIntersectsPolygon._title, repeat_count=7)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -301,7 +301,7 @@ class PolygonWithinPolygon(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         PolygonWithinPolygon._title, repeat_count=3)
+                         PolygonWithinPolygon._title, repeat_count=7)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -324,7 +324,7 @@ class RetrievePoints(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         RetrievePoints._title, repeat_count=3)
+                         RetrievePoints._title, repeat_count=7)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -350,7 +350,7 @@ class LongestLine(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         LongestLine._title, repeat_count=3)
+                         LongestLine._title, repeat_count=7)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -373,7 +373,7 @@ class TotalLength(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         TotalLength._title, repeat_count=3)
+                         TotalLength._title, repeat_count=7)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -396,7 +396,7 @@ class RetrieveLines(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         RetrieveLines._title, repeat_count=3)
+                         RetrieveLines._title, repeat_count=7)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -422,7 +422,7 @@ class LargestArea(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         LargestArea._title, repeat_count=3)
+                         LargestArea._title, repeat_count=7)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -445,7 +445,7 @@ class TotalArea(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         TotalArea._title, repeat_count=3)
+                         TotalArea._title, repeat_count=7)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -468,7 +468,7 @@ class RetrievePolygons(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         RetrievePolygons._title, repeat_count=3)
+                         RetrievePolygons._title, repeat_count=7)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -494,7 +494,7 @@ class PointNearPoint(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         PointNearPoint._title, repeat_count=3)
+                         PointNearPoint._title, repeat_count=7)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -520,7 +520,7 @@ class PointNearPoint2(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         PointNearPoint2._title, repeat_count=3)
+                         PointNearPoint2._title, repeat_count=7)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -548,7 +548,7 @@ class PointNearLine(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         PointNearLine._title, repeat_count=3)
+                         PointNearLine._title, repeat_count=7)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -574,7 +574,7 @@ class PointNearLine2(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         PointNearLine2._title, repeat_count=3)
+                         PointNearLine2._title, repeat_count=7)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -602,7 +602,7 @@ class PointNearPolygon(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         PointNearPolygon._title, repeat_count=3)
+                         PointNearPolygon._title, repeat_count=7)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -628,7 +628,7 @@ class SinglePointWithinPolygon(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         SinglePointWithinPolygon._title, repeat_count=3)
+                         SinglePointWithinPolygon._title, repeat_count=7)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -654,7 +654,7 @@ class LineNearPolygon(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         LineNearPolygon._title, repeat_count=3)
+                         LineNearPolygon._title, repeat_count=7)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -680,7 +680,7 @@ class SingleLineIntersectsPolygon(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True, subsampling_factor=1):
         super().__init__(create_mysql_adapter(),
-                         SingleLineIntersectsPolygon._title, repeat_count=3)
+                         SingleLineIntersectsPolygon._title, repeat_count=7)
         self.dataset_suffix = ""
         if use_projected_crs:
             self.dataset_suffix = "_3857"
@@ -706,7 +706,7 @@ class InsertNewPoints(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True):
         super().__init__(create_mysql_adapter(),
-                         InsertNewPoints._title, repeat_count=3)
+                         InsertNewPoints._title, repeat_count=7)
         self.dataset_suffix = ""
         srid = 4326
         if use_projected_crs:
@@ -748,7 +748,7 @@ class InsertNewLines(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True):
         super().__init__(create_mysql_adapter(),
-                         InsertNewLines._title, repeat_count=3)
+                         InsertNewLines._title, repeat_count=7)
         self.dataset_suffix = ""
         srid = 4326
         if use_projected_crs:
@@ -790,7 +790,7 @@ class InsertNewPolygons(MysqlBenchmark):
 
     def __init__(self, use_projected_crs=True):
         super().__init__(create_mysql_adapter(),
-                         InsertNewPolygons._title, repeat_count=3)
+                         InsertNewPolygons._title, repeat_count=7)
         self.dataset_suffix = ""
         srid = 4326
         if use_projected_crs:

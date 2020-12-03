@@ -19,5 +19,5 @@ if __name__ == "__main__":
 
     logger.info(benchmark_data)
 
-    create_bar_chart(benchmark_data, "Time to Run Query",
+    create_bar_chart(benchmark_data, "Time to Insert 1000 Rows",
                      "Seconds", f"figures/{output_file}.png", yscale='log')

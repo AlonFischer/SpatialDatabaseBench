@@ -26,7 +26,7 @@ python3 plotting/crs_benchmark.py analysis
 python3 subsampling_benchmark.py join --init --cleanup --pg-index GIST
 python3 subsampling_benchmark.py analysis --init --cleanup --pg-index GIST
 
-python3 spatial_join_analysis_benchmark.py analysis --init --cleanup --db postgis --parallel --pg-index GIST
+python3 spatial_join_analysis_benchmark.py analysis --init --cleanup --db pg --parallel --pg-index GIST
 python3 plotting/parallel_execution_benchmark.py analysis
-python3 spatial_join_analysis_benchmark.py join --init --cleanup --db postgis --parallel --pg-index GIST
+python3 spatial_join_analysis_benchmark.py join --init --cleanup --db pg --parallel --pg-index GIST
 python3 plotting/parallel_execution_benchmark.py join
